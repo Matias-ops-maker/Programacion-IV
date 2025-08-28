@@ -14,4 +14,5 @@ class Perro implements Animal {
 console.log("Clase Perro: ");
 const perro = new Perro();
 perro.hacerSonido();
+
 perro.moverse();
