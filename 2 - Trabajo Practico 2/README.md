@@ -33,7 +33,7 @@ Incluye validaciones de entrada, reglas de negocio y endpoints para crear, lista
 1. Clonar el repositorio:
 
 ```bash
-git clone <URL_DEL_REPO>
+git clone https://github.com/Matias-ops-maker/Programacion-IV/tree/main/2%20-%20Trabajo%20Practico%202
 cd tp2-pizzeria
 
 
