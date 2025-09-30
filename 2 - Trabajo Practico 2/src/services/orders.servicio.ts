@@ -1,16 +1,17 @@
+import { Request, Response } from "express";
 import { Order, Size } from "../types/order";
 import { v4 as uuidv4 } from "uuid";
+import { orderSchema } from "../validations/order.schema";
 
 const orders: Order[] = [];
 
-export function createOrder(data: Partial<Order>): Order {
-  const { items, size, toppings = [], address } = data;
+export function createOrder(req: Request, res: Response) {
+  const result = orderSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(422).json({ error: result.error.errors });
+  }
 
-  if (!items || items.length === 0) throw new Error("Items no pueden estar vacíos");
-  if (!address || address.length < 10) throw new Error("Address mínimo 10 caracteres");
-  if (!["S", "M", "L"].includes(size!)) throw new Error("Size inválido");
-  if (toppings.length > 5) throw new Error("Máx. 5 toppings");
-
+  const { items, size, toppings = [], address } = result.data;
   const basePrice = size === "S" ? 100 : size === "M" ? 150 : 200;
   const toppingsPrice = toppings.length * 20;
   const total = basePrice + toppingsPrice;
@@ -26,7 +27,7 @@ export function createOrder(data: Partial<Order>): Order {
   };
 
   orders.push(order);
-  return order;
+  return res.status(201).json(order);
 }
 
 export function getOrder(id: string): Order | undefined {
@@ -38,10 +39,15 @@ export function listOrders(status?: string): Order[] {
   return orders.filter(o => o.status === status);
 }
 
-export function cancelOrder(id: string): Order {
+export function cancelOrder(req: Request, res: Response) {
+  const id = req.params.id;
   const order = orders.find(o => o.id === id);
-  if (!order) throw new Error("Order no encontrada");
-  if (order.status === "delivered") throw new Error("No se puede cancelar una orden entregada");
+  if (!order) {
+    return res.status(404).json({ error: "Order no encontrada" });
+  }
+  if (order.status === "delivered") {
+    return res.status(409).json({ error: "No se puede cancelar una orden entregada" });
+  }
   order.status = "canceled";
-  return order;
+  return res.status(200).json(order);
 }
