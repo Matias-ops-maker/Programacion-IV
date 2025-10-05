@@ -1,48 +1,88 @@
-import { Router } from "express";
-import { z } from "zod";
+import { Router, Request, Response } from "express";
 import { createOrder, getOrder, listOrders, cancelOrder } from "../services/orders.servicio";
+import { createOrderSchema } from "../validations/order.schema";
 
 const router = Router();
 
-// Schemas
-const createOrderSchema = z.object({
-  items: z.array(z.object({ name: z.string(), quantity: z.number().min(1), price: z.number() })).min(1),
-  size: z.enum(["S", "M", "L"]),
-  toppings: z.array(z.string()).max(5).optional(),
-  address: z.string().min(10),
-});
-
 // POST /orders
-router.post("/", (req, res) => {
+router.post("/", (req: Request, res: Response) => {
   try {
-    const data = createOrderSchema.parse(req.body);
-    const order = createOrder(data);
+    // Validar los datos de entrada con Zod
+    const validatedData = createOrderSchema.parse(req.body);
+    
+    // Crear la orden usando el servicio
+    const order = createOrder(validatedData);
+    
     res.status(201).json(order);
   } catch (err: any) {
-    res.status(422).json({ error: err.message });
+    // Si es un error de validación de Zod
+    if (err.name === 'ZodError') {
+      return res.status(422).json({ 
+        error: "Datos de entrada inválidos", 
+        details: err.errors 
+      });
+    }
+    
+    // Otros errores
+    res.status(500).json({ 
+      error: "Error interno del servidor",
+      message: err.message 
+    });
   }
 });
 
 // GET /orders/:id
-router.get("/:id", (req, res) => {
-  const order = getOrder(req.params.id);
-  if (!order) return res.status(404).json({ error: "Order no encontrada" });
-  res.json(order);
+router.get("/:id", (req: Request, res: Response) => {
+  try {
+    const order = getOrder(req.params.id);
+    
+    if (!order) {
+      return res.status(404).json({ error: "Order no encontrada" });
+    }
+    
+    res.json(order);
+  } catch (err: any) {
+    res.status(500).json({ 
+      error: "Error interno del servidor",
+      message: err.message 
+    });
+  }
 });
 
 // GET /orders?status
-router.get("/", (req, res) => {
-  const orders = listOrders(req.query.status as string);
-  res.json(orders);
+router.get("/", (req: Request, res: Response) => {
+  try {
+    const status = req.query.status as string;
+    const orders = listOrders(status);
+    res.json(orders);
+  } catch (err: any) {
+    res.status(500).json({ 
+      error: "Error interno del servidor",
+      message: err.message 
+    });
+  }
 });
 
 // POST /orders/:id/cancel
-router.post("/:id/cancel", (req, res) => {
+router.post("/:id/cancel", (req: Request, res: Response) => {
   try {
     const order = cancelOrder(req.params.id);
     res.json(order);
   } catch (err: any) {
-    res.status(409).json({ error: err.message });
+    // Error específico de lógica de negocio
+    if (err.message.includes("no encontrada")) {
+      return res.status(404).json({ error: err.message });
+    }
+    
+    if (err.message.includes("entregada")) {
+      return res.status(409).json({ error: err.message });
+    }
+    
+    // Otros errores
+    res.status(500).json({ 
+      error: "Error interno del servidor",
+      message: err.message 
+    });
   }
 });
 
