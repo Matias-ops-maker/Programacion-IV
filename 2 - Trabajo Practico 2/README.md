@@ -57,6 +57,34 @@ src/
 
 ## Instalación
 
+### Opción 1: Instalación Automática (Recomendada para principiantes)
+
+Los archivos `setup.bat` (Windows) y `setup.sh` (Linux/Mac) son **scripts opcionales de conveniencia** que automatizan todo el proceso de configuración.
+
+**Windows:**
+```bash
+setup.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+Estos scripts automáticamente:
+- ✅ Verifican que Node.js y npm estén instalados
+- ✅ Instalan las dependencias del proyecto
+- ✅ Compilan TypeScript
+- ✅ Ejecutan los tests para verificar que todo funcione
+- ✅ Muestran los comandos disponibles
+
+> **Nota:** Estos scripts **NO son obligatorios**. Son solo una herramienta de ayuda para configurar el proyecto más fácilmente. Puedes ignorarlos si prefieres hacer la instalación manual.
+
+### Opción 2: Instalación Manual
+
+Si prefieres tener más control sobre el proceso, puedes ejecutar los comandos manualmente:
+
 ```bash
 # Instalar dependencias
 npm install
