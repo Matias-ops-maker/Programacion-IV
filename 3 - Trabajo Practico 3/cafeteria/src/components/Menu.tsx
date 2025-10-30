@@ -37,7 +37,35 @@ export const Menu = () => {
   }, []);
 
   if (error) {
-    return <div role="alert">{error}</div>;
+    return (
+      <div role="alert" className="error-container">
+        <h2>Error</h2>
+        <p>{error}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="retry-button"
+          data-testid="retry-button"
+        >
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <div role="alert" className="empty-menu">
+        <h2>Menú no disponible</h2>
+        <p>Lo sentimos, no hay productos disponibles en este momento.</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="retry-button"
+          data-testid="retry-button"
+        >
+          Actualizar Menú
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -54,7 +82,10 @@ export const Menu = () => {
                 <p>Categoría: {product.category}</p>
               </div>
               <button 
-                onClick={() => addItem(product)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addItem(product);
+                }}
                 data-testid={`add-to-cart-${product.id}`}
                 style={{ 
                   backgroundColor: '#4CAF50', 

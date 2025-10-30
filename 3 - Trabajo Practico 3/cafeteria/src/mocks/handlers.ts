@@ -27,6 +27,19 @@ const mockProducts: Product[] = [
 
 export const handlers = [
   http.get("/api/menu", () => {
+    // Simular error 500 si se establece una variable de estado
+    if (process.env.MOCK_MENU_ERROR === "500") {
+      return new HttpResponse(null, {
+        status: 500,
+        statusText: "Internal Server Error"
+      });
+    }
+    
+    // Simular menú vacío si se establece la variable correspondiente
+    if (process.env.MOCK_EMPTY_MENU === "true") {
+      return HttpResponse.json([]);
+    }
+    
     return HttpResponse.json(mockProducts);
   }),
 
