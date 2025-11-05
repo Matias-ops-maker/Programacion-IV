@@ -1,0 +1,37 @@
+.order-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.submit-order {
+  padding: 0.5rem 1rem;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.submit-order:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.success-message {
+  padding: 1rem;
+  background-color: #dff0d8;
+  border: 1px solid #d0e9c6;
+  color: #3c763d;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+.error-message {
+  padding: 1rem;
+  background-color: #f2dede;
+  border: 1px solid #ebcccc;
+  color: #a94442;
+  border-radius: 4px;
+  margin: 1rem 0;
+}

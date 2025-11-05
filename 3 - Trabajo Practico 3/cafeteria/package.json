@@ -36,5 +36,10 @@
     "vite": "^7.1.7",
     "vitest": "^4.0.3",
     "zod": "^4.1.12"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
