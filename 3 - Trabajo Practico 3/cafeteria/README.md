@@ -91,7 +91,7 @@ Entrega esperada:
 - Tests para eliminación y casos límite — Implementados
 - MSW con override de errores — Implementado
 
-### 📦 Persona 5 (Nicolas) — Envío de pedido + Integración completa (Falta)
+### 📦 Persona 5 (Nicolas) — Envío de pedido + Integración completa (Hecho)
 Responsable de:
 - Implementar botón "Enviar pedido"
 - Mockear `POST /api/orders` con MSW
