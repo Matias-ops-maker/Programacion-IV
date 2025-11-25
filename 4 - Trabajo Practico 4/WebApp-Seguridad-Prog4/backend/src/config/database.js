@@ -7,19 +7,26 @@ const dbConfig = {
   database: process.env.DB_NAME || 'vulnerable_app'
 };
 
-const db = mysql.createConnection(dbConfig);
+// Usar pool para manejar múltiples conexiones y permitir query/execute paramétricos
+const pool = mysql.createPool(Object.assign({}, dbConfig, {
+  waitForConnections: true,
+  connectionLimit: Number(process.env.DB_CONN_LIMIT) || 10,
+  queueLimit: 0
+}));
 
-// Conectar a MySQL con retry
+// Test de conexión con retry (compatible con pool)
 const connectWithRetry = () => {
-  db.connect((err) => {
+  pool.getConnection((err, connection) => {
     if (err) {
-      console.error('Error conectando a MySQL:', err);
+      console.error('Error conectando a MySQL (pool):', err);
       console.log('Reintentando en 5 segundos...');
       setTimeout(connectWithRetry, 5000);
     } else {
-      console.log('Conectado a MySQL');
+      connection.release();
+      console.log('Conectado a MySQL (pool)');
     }
   });
 };
 
-module.exports = { db, connectWithRetry };
+// exportamos el pool como `db` para mantener compatibilidad con el código existente
+module.exports = { db: pool, connectWithRetry };

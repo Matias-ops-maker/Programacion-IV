@@ -13,7 +13,8 @@ const {
   bruteForceDelay,
   bruteForceCaptcha,
   resetFailedAttempts,
-  resetRateLimit
+  resetRateLimit,
+  recordAttempt
 } = require('../middleware/bruteForce.js'); 
 
 router.use((req, res, next) => {
@@ -28,6 +29,6 @@ router.use((req, res, next) => {
 router.post('/login', require('../middleware/bruteForce').recordAttempt, bruteForceLimiter, bruteForceDelay, bruteForceCaptcha, login);
 router.post('/register', register);
 router.post('/auth/verify', verifyToken);
-router.post('/check-username', checkUsername);
+router.post('/check-username', recordAttempt, bruteForceLimiter, bruteForceDelay, checkUsername);
 
 module.exports = router;

@@ -52,7 +52,41 @@ const verifyToken = (req, res) => {
 };
 
 const checkUsername = (req, res) => {
-  return res.status(501).json({ error: 'Not implemented' });
+  try {
+    const ip = req.ip || 'unknown';
+    const username = req.body && req.body.username;
+
+    // Validación estricta: permitir solo usernames alfanuméricos y _ entre 3 y 30 chars
+    if (!username || typeof username !== 'string' || !/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+      // Registrar intentos sospechosos para monitoreo
+      if (username && (username.includes("'") || username.includes('--') || /sleep/i.test(username))) {
+        console.warn('Posible intento de SQLi en checkUsername', { ip, username });
+      }
+
+      // Respuesta genérica (no revelar información)
+      return res.json({ exists: false });
+    }
+
+    const query = 'SELECT COUNT(*) as count FROM users WHERE username = ?';
+    db.query(query, [username], (err, results) => {
+      if (err) {
+        console.error('DB error in checkUsername:', err);
+        // Responder genéricamente
+        return res.json({ exists: false });
+      }
+
+      const count = (results && results[0] && (results[0].count || results[0].COUNT || results[0].count === 0))
+        ? Number(results[0].count || results[0].COUNT || 0)
+        : 0;
+
+      // Pequeño delay aleatorio para mitigar timing attacks (50-150ms)
+      const delay = Math.floor(Math.random() * 100) + 50;
+      setTimeout(() => res.json({ exists: count > 0 }), delay);
+    });
+  } catch (error) {
+    console.error('Unexpected error in checkUsername:', error);
+    return res.json({ exists: false });
+  }
 };
 
 module.exports = {
