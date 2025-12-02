@@ -11,17 +11,20 @@ node --version
 ```
 
 Si alguno no está instalado, descárgalo desde:
+
 - Docker: https://www.docker.com/products/docker-desktop
 - Node.js: https://nodejs.org/
 
 ### 2️⃣ Ejecutar la verificación completa
 
 **En Windows (PowerShell):**
+
 ```powershell
 .\verify-all.ps1
 ```
 
 **En Linux/Mac (Terminal/Bash):**
+
 ```bash
 bash verify-all.sh
 ```
@@ -29,6 +32,7 @@ bash verify-all.sh
 ### 3️⃣ Esperar a que termine
 
 El script automáticamente:
+
 - ✅ Verifica Docker
 - ✅ Inicia los servicios
 - ✅ Valida que funcione todo
@@ -45,11 +49,11 @@ El script automáticamente:
 
 ## 📚 Documentos Importantes
 
-| Documento | Para Qué | Cuándo Leerlo |
-|-----------|----------|--------------|
-| **SETUP_GUIDE.md** | Guía detallada completa | Cuando necesites detalles |
-| **QUICK_REFERENCE.md** | Comandos útiles | Para recordar comandos |
-| **WORK_SUMMARY.md** | Resumen técnico | Para entender la arquitectura |
+| Documento              | Para Qué                | Cuándo Leerlo                 |
+| ---------------------- | ----------------------- | ----------------------------- |
+| **SETUP_GUIDE.md**     | Guía detallada completa | Cuando necesites detalles     |
+| **QUICK_REFERENCE.md** | Comandos útiles         | Para recordar comandos        |
+| **WORK_SUMMARY.md**    | Resumen técnico         | Para entender la arquitectura |
 
 ---
 
@@ -242,6 +246,7 @@ Esta aplicación ha sido diseñada **intencionalmente con vulnerabilidades** par
 **⚠️ NO USES EN PRODUCCIÓN**
 
 Tu objetivo es:
+
 1. Entender cómo explotar vulnerabilidades
 2. Aprender a corregirlas
 3. Implementar defensas adecuadas
@@ -265,4 +270,3 @@ bash verify-all.sh
 **Última actualización:** 2 de diciembre de 2025  
 **Versión:** 1.0  
 **Estado:** ✅ Listo para Usar
-

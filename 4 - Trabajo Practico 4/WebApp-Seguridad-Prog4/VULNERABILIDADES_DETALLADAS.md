@@ -1,6 +1,7 @@
 # 🔒 Documentación de Vulnerabilidades - WebApp-Seguridad-Prog4
 
 ## 📋 Contenido
+
 1. [Vulnerabilidad 1: Brute Force](#1-brute-force-attack)
 2. [Vulnerabilidad 2: Command Injection](#2-command-injection)
 3. [Vulnerabilidad 3: CSRF Protection](#3-csrf-cross-site-request-forgery)
@@ -15,9 +16,11 @@
 ## 1. Brute Force Attack
 
 ### 🎯 ¿Qué es?
+
 Un ataque de fuerza bruta intenta adivinar contraseñas o credenciales mediante intentos repetidos y automatizados. Sin protección, un atacante puede hacer miles de intentos por segundo.
 
 ### ⚠️ Impacto
+
 - **Criticidad:** 🔴 ALTA
 - **Riesgo:** Acceso no autorizado a cuentas de usuario
 - **Alcance:** Todos los usuarios de la aplicación
@@ -41,16 +44,16 @@ Intenta: usuario=admin, password=123458
 
 ```javascript
 // ❌ VULNERABLE: Sin rate limiting
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
-  
+
   // Sin protección: puedes intentar login infinitas veces
   const user = await User.findByUsername(username);
-  
-  if (user && await user.checkPassword(password)) {
+
+  if (user && (await user.checkPassword(password))) {
     res.json({ token: generateToken(user) });
   } else {
-    res.status(401).json({ error: 'Invalid credentials' });
+    res.status(401).json({ error: "Invalid credentials" });
   }
 });
 ```
@@ -81,22 +84,22 @@ const loginLimiter = rateLimit({
 
 app.post('/api/login', loginLimiter, async (req, res) => {
   const { username, password, captcha } = req.body;
-  
+
   // Contador de intentos fallidos
   const attempts = await LoginAttempt.count({
     where: { username, success: false },
     include: [{ where: { createdAt: { $gte: 15 minutos atrás } } }]
   });
-  
+
   if (attempts > 3) {
     // Requerir CAPTCHA después de 3 intentos
     if (!captcha || !validateCaptcha(captcha)) {
       return res.status(400).json({ error: 'CAPTCHA requerido' });
     }
   }
-  
+
   const user = await User.findByUsername(username);
-  
+
   if (user && await user.checkPassword(password)) {
     await LoginAttempt.create({ username, success: true });
     res.json({ token: generateToken(user) });
@@ -111,13 +114,13 @@ app.post('/api/login', loginLimiter, authController.login);
 
 ### 📊 Comparación
 
-| Aspecto | ❌ Vulnerable | ✅ Seguro |
-|---------|---|---|
-| **Intentos permitidos** | Ilimitados | 5 en 15 minutos |
-| **Delay** | Ninguno | Exponencial |
-| **CAPTCHA** | No | Sí, después de 3 intentos |
-| **Bloqueo temporal** | No | Sí, por IP |
-| **Logging** | Limitado | Completo con alertas |
+| Aspecto                 | ❌ Vulnerable | ✅ Seguro                 |
+| ----------------------- | ------------- | ------------------------- |
+| **Intentos permitidos** | Ilimitados    | 5 en 15 minutos           |
+| **Delay**               | Ninguno       | Exponencial               |
+| **CAPTCHA**             | No            | Sí, después de 3 intentos |
+| **Bloqueo temporal**    | No            | Sí, por IP                |
+| **Logging**             | Limitado      | Completo con alertas      |
 
 ### 🔐 Mejores Prácticas
 
@@ -133,9 +136,11 @@ app.post('/api/login', loginLimiter, authController.login);
 ## 2. Command Injection
 
 ### 🎯 ¿Qué es?
+
 Cuando una aplicación ejecuta comandos del sistema sin validar la entrada del usuario. El atacante puede inyectar comandos arbitrarios.
 
 ### ⚠️ Impacto
+
 - **Criticidad:** 🔴 CRÍTICA
 - **Riesgo:** Control total del servidor
 - **Alcance:** Toda la aplicación e infraestructura
@@ -159,16 +164,17 @@ rm -rf /  ← Elimina TODO
 
 ```javascript
 // ❌ VULNERABLE: Ejecuta comandos sin validación
-const { exec } = require('child_process');
+const { exec } = require("child_process");
 
-app.post('/api/process-file', (req, res) => {
+app.post("/api/process-file", (req, res) => {
   const { filename } = req.body;
-  
+
   // Concatenación directa = inyección posible
-  exec(`convert ${filename} -resize 100x100 ${filename}.thumb.jpg`, 
+  exec(
+    `convert ${filename} -resize 100x100 ${filename}.thumb.jpg`,
     (error, stdout, stderr) => {
       if (error) return res.status(500).json({ error });
-      res.json({ message: 'File processed' });
+      res.json({ message: "File processed" });
     }
   );
 });
@@ -181,45 +187,50 @@ app.post('/api/process-file', (req, res) => {
 
 ```javascript
 // ✅ SEGURO: Usar métodos seguros sin shell
-const { execFile } = require('child_process');
-const path = require('path');
-const fs = require('fs');
+const { execFile } = require("child_process");
+const path = require("path");
+const fs = require("fs");
 
-app.post('/api/process-file', validateUpload, (req, res) => {
+app.post("/api/process-file", validateUpload, (req, res) => {
   const { filename } = req.body;
-  
+
   // 1. Validar nombre de archivo
-  if (!filename || filename.includes('..') || filename.includes('/')) {
-    return res.status(400).json({ error: 'Invalid filename' });
+  if (!filename || filename.includes("..") || filename.includes("/")) {
+    return res.status(400).json({ error: "Invalid filename" });
   }
-  
+
   // 2. Validar que el archivo existe y está en ubicación segura
-  const filePath = path.join('/uploads', filename);
-  const uploadsDir = path.resolve('/uploads');
-  
+  const filePath = path.join("/uploads", filename);
+  const uploadsDir = path.resolve("/uploads");
+
   if (!filePath.startsWith(uploadsDir)) {
-    return res.status(400).json({ error: 'Invalid path' });
+    return res.status(400).json({ error: "Invalid path" });
   }
-  
+
   if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ error: 'File not found' });
+    return res.status(404).json({ error: "File not found" });
   }
-  
+
   // 3. Usar execFile en lugar de exec (sin shell)
   // Los argumentos se pasan como array
-  execFile('convert', 
+  execFile(
+    "convert",
     [
       filePath,
-      '-resize', '100x100',  // Los argumentos NO se concatenan
-      `${filePath}.thumb.jpg`
+      "-resize",
+      "100x100", // Los argumentos NO se concatenan
+      `${filePath}.thumb.jpg`,
     ],
     { timeout: 5000 }, // Timeout de 5 segundos
     (error, stdout, stderr) => {
       if (error) {
-        console.error('Processing error:', error);
-        return res.status(500).json({ error: 'Processing failed' });
+        console.error("Processing error:", error);
+        return res.status(500).json({ error: "Processing failed" });
       }
-      res.json({ message: 'File processed', filename: path.basename(filePath) });
+      res.json({
+        message: "File processed",
+        filename: path.basename(filePath),
+      });
     }
   );
 });
@@ -227,14 +238,14 @@ app.post('/api/process-file', validateUpload, (req, res) => {
 
 ### 📊 Comparación
 
-| Aspecto | ❌ Vulnerable | ✅ Seguro |
-|---------|---|---|
-| **Método** | `exec()` | `execFile()` |
-| **Shell activado** | Sí | No |
-| **Concatenación** | Sí | No |
-| **Validación entrada** | No | Sí |
-| **Path traversal** | Permitido | Bloqueado |
-| **Timeout** | No | Sí |
+| Aspecto                | ❌ Vulnerable | ✅ Seguro    |
+| ---------------------- | ------------- | ------------ |
+| **Método**             | `exec()`      | `execFile()` |
+| **Shell activado**     | Sí            | No           |
+| **Concatenación**      | Sí            | No           |
+| **Validación entrada** | No            | Sí           |
+| **Path traversal**     | Permitido     | Bloqueado    |
+| **Timeout**            | No            | Sí           |
 
 ### 🔐 Mejores Prácticas
 
@@ -250,9 +261,11 @@ app.post('/api/process-file', validateUpload, (req, res) => {
 ## 3. CSRF (Cross-Site Request Forgery)
 
 ### 🎯 ¿Qué es?
+
 Un ataque donde un sitio malicioso engaña al navegador para hacer peticiones a otro sitio en nombre del usuario autenticado.
 
 ### ⚠️ Impacto
+
 - **Criticidad:** 🔴 ALTA
 - **Riesgo:** Acciones no autorizadas en nombre del usuario
 - **Alcance:** Acciones que el usuario podría hacer
@@ -272,16 +285,16 @@ Un ataque donde un sitio malicioso engaña al navegador para hacer peticiones a 
 
 ```javascript
 // ❌ VULNERABLE: Sin token CSRF
-app.post('/api/transfer', async (req, res) => {
+app.post("/api/transfer", async (req, res) => {
   const { toAccount, amount } = req.body;
-  
+
   // Nada valida que la petición viene del sitio legítimo
   const transfer = await Transfer.create({
     fromAccount: req.user.id,
     toAccount,
-    amount
+    amount,
   });
-  
+
   res.json({ success: true, transfer });
 });
 
@@ -297,39 +310,41 @@ app.post('/api/transfer', async (req, res) => {
 
 ```javascript
 // ✅ SEGURO: Con protección CSRF
-const csrf = require('csurf');
-const session = require('express-session');
+const csrf = require("csurf");
+const session = require("express-session");
 
 // Middleware CSRF
 const csrfProtection = csrf({ cookie: false }); // Usa session, no cookie
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    secure: true,        // Solo HTTPS
-    httpOnly: true,      // No accesible desde JavaScript
-    sameSite: 'strict'   // No se envía en peticiones cross-site
-  }
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      secure: true, // Solo HTTPS
+      httpOnly: true, // No accesible desde JavaScript
+      sameSite: "strict", // No se envía en peticiones cross-site
+    },
+  })
+);
 
 // Generar token para formularios
-app.get('/api/form-token', csrfProtection, (req, res) => {
+app.get("/api/form-token", csrfProtection, (req, res) => {
   res.json({ csrfToken: req.csrfToken() });
 });
 
 // Proteger acciones sensibles
-app.post('/api/transfer', csrfProtection, validateInput, async (req, res) => {
+app.post("/api/transfer", csrfProtection, validateInput, async (req, res) => {
   // El middleware automáticamente valida el token CSRF
   const { toAccount, amount } = req.body;
-  
+
   const transfer = await Transfer.create({
     fromAccount: req.user.id,
     toAccount,
-    amount
+    amount,
   });
-  
+
   res.json({ success: true, transfer });
 });
 
@@ -343,14 +358,14 @@ app.post('/api/transfer', csrfProtection, validateInput, async (req, res) => {
 
 ### 📊 Comparación
 
-| Aspecto | ❌ Vulnerable | ✅ Seguro |
-|---------|---|---|
-| **Token CSRF** | No | Sí |
-| **Storage token** | - | Session (httpOnly) |
-| **SameSite Cookie** | No | Strict |
-| **HTTPOnly** | No | Sí |
-| **HTTPS requerido** | No | Sí |
-| **Validación** | No | Automática |
+| Aspecto             | ❌ Vulnerable | ✅ Seguro          |
+| ------------------- | ------------- | ------------------ |
+| **Token CSRF**      | No            | Sí                 |
+| **Storage token**   | -             | Session (httpOnly) |
+| **SameSite Cookie** | No            | Strict             |
+| **HTTPOnly**        | No            | Sí                 |
+| **HTTPS requerido** | No            | Sí                 |
+| **Validación**      | No            | Automática         |
 
 ### 🔐 Mejores Prácticas
 
@@ -366,9 +381,11 @@ app.post('/api/transfer', csrfProtection, validateInput, async (req, res) => {
 ## 4. File Inclusion Attack
 
 ### 🎯 ¿Qué es?
+
 Cuando la aplicación permite acceder a archivos basado en entrada del usuario sin validar. Un atacante puede leer archivos sensibles o ejecutar código.
 
 ### ⚠️ Impacto
+
 - **Criticidad:** 🔴 ALTA
 - **Riesgo:** Lectura de archivos sensibles
 - **Alcance:** Sistema de archivos del servidor
@@ -386,12 +403,12 @@ URL: /file?path=../../database.sql
 
 ```javascript
 // ❌ VULNERABLE: Path traversal
-app.get('/api/file/:name', (req, res) => {
+app.get("/api/file/:name", (req, res) => {
   const { name } = req.params;
-  
+
   // Directamente usa el input del usuario
   const filePath = `/uploads/${name}`;
-  
+
   res.download(filePath);
 });
 
@@ -404,74 +421,74 @@ app.get('/api/file/:name', (req, res) => {
 
 ```javascript
 // ✅ SEGURO: Validación de ruta
-const path = require('path');
-const fs = require('fs');
+const path = require("path");
+const fs = require("fs");
 
-app.get('/api/file/:name', validateUser, (req, res) => {
+app.get("/api/file/:name", validateUser, (req, res) => {
   const { name } = req.params;
-  
+
   // 1. Validar formato de nombre
-  if (!name || name.includes('.') || name.includes('/')) {
-    return res.status(400).json({ error: 'Invalid filename' });
+  if (!name || name.includes(".") || name.includes("/")) {
+    return res.status(400).json({ error: "Invalid filename" });
   }
-  
+
   // 2. Construir ruta segura
-  const uploadsDir = path.resolve(__dirname, '../uploads');
+  const uploadsDir = path.resolve(__dirname, "../uploads");
   const filePath = path.resolve(uploadsDir, name);
-  
+
   // 3. Validar que está dentro del directorio permitido
   if (!filePath.startsWith(uploadsDir)) {
-    return res.status(403).json({ error: 'Access denied' });
+    return res.status(403).json({ error: "Access denied" });
   }
-  
+
   // 4. Validar que existe
   if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ error: 'File not found' });
+    return res.status(404).json({ error: "File not found" });
   }
-  
+
   // 5. Validar que es archivo (no directorio)
   if (!fs.statSync(filePath).isFile()) {
-    return res.status(403).json({ error: 'Access denied' });
+    return res.status(403).json({ error: "Access denied" });
   }
-  
+
   // 6. Validar tipo de archivo
-  const allowedExtensions = ['.pdf', '.doc', '.jpg', '.png'];
+  const allowedExtensions = [".pdf", ".doc", ".jpg", ".png"];
   const ext = path.extname(filePath);
   if (!allowedExtensions.includes(ext)) {
-    return res.status(403).json({ error: 'File type not allowed' });
+    return res.status(403).json({ error: "File type not allowed" });
   }
-  
+
   res.download(filePath);
 });
 
 // O usar un mapping seguro
 const FILES = {
-  'document1': '/uploads/report_2024.pdf',
-  'document2': '/uploads/invoice.pdf',
+  document1: "/uploads/report_2024.pdf",
+  document2: "/uploads/invoice.pdf",
   // Etc.
 };
 
-app.get('/api/file/:id', (req, res) => {
+app.get("/api/file/:id", (req, res) => {
   const filePath = FILES[req.params.id];
-  
+
   if (!filePath) {
-    return res.status(404).json({ error: 'File not found' });
+    return res.status(404).json({ error: "File not found" });
   }
-  
+
   res.download(filePath);
 });
 ```
 
 ### 📊 Comparación
 
-| Aspecto | ❌ Vulnerable | ✅ Seguro |
-|---------|---|---|
-| **Validación entrada** | No | Sí |
-| **Path normalization** | No | Sí |
-| **Boundary check** | No | Sí |
-| **Whitelist archivos** | No | Sí |
-| **Validar tipo** | No | Sí |
-| **Mapeo seguro** | - | Sí |
+| Aspecto                | ❌ Vulnerable | ✅ Seguro |
+| ---------------------- | ------------- | --------- |
+| **Validación entrada** | No            | Sí        |
+| **Path normalization** | No            | Sí        |
+| **Boundary check**     | No            | Sí        |
+| **Whitelist archivos** | No            | Sí        |
+| **Validar tipo**       | No            | Sí        |
+| **Mapeo seguro**       | -             | Sí        |
 
 ### 🔐 Mejores Prácticas
 
@@ -487,9 +504,11 @@ app.get('/api/file/:id', (req, res) => {
 ## 5. Insecure File Upload
 
 ### 🎯 ¿Qué es?
+
 Cuando la aplicación permite subir archivos sin validar su tipo, tamaño o contenido. Un atacante puede subir malware o código ejecutable.
 
 ### ⚠️ Impacto
+
 - **Criticidad:** 🔴 CRÍTICA
 - **Riesgo:** Ejecución de código, malware
 - **Alcance:** Servidor y otros usuarios
@@ -509,17 +528,17 @@ Cuando la aplicación permite subir archivos sin validar su tipo, tamaño o cont
 
 ```javascript
 // ❌ VULNERABLE: Sin validación
-const multer = require('multer');
+const multer = require("multer");
 
-const upload = multer({ 
-  dest: '/uploads' 
+const upload = multer({
+  dest: "/uploads",
 });
 
-app.post('/api/upload', upload.single('file'), (req, res) => {
+app.post("/api/upload", upload.single("file"), (req, res) => {
   // Solo se renombra al archivo
-  res.json({ 
+  res.json({
     filename: req.file.filename,
-    url: `/uploads/${req.file.filename}`
+    url: `/uploads/${req.file.filename}`,
   });
 });
 
@@ -533,30 +552,30 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 
 ```javascript
 // ✅ SEGURO: Validación completa
-const multer = require('multer');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const fileType = require('file-type');
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const fileType = require("file-type");
 
 // Configuración de upload segura
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     // Subdirectorio por usuario para aislar archivos
-    const userDir = path.join('/uploads', req.user.id.toString());
-    
+    const userDir = path.join("/uploads", req.user.id.toString());
+
     if (!fs.existsSync(userDir)) {
       fs.mkdirSync(userDir, { recursive: true, mode: 0o700 });
     }
-    
+
     cb(null, userDir);
   },
   filename: (req, file, cb) => {
     // Generar nombre aleatorio, mantener extensión
-    const uniqueSuffix = crypto.randomBytes(8).toString('hex');
+    const uniqueSuffix = crypto.randomBytes(8).toString("hex");
     const ext = path.extname(file.originalname);
     cb(null, `${Date.now()}-${uniqueSuffix}${ext}`);
-  }
+  },
 });
 
 // Validación de archivo
@@ -564,38 +583,46 @@ const fileFilter = async (req, file, cb) => {
   // 1. Validar tamaño
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
   if (file.size > MAX_SIZE) {
-    return cb(new Error('File size exceeds 5MB'));
+    return cb(new Error("File size exceeds 5MB"));
   }
-  
+
   // 2. Validar tipo MIME
   const ALLOWED_MIMES = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'application/pdf',
-    'application/msword'
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "application/pdf",
+    "application/msword",
   ];
-  
+
   if (!ALLOWED_MIMES.includes(file.mimetype)) {
-    return cb(new Error('File type not allowed'));
+    return cb(new Error("File type not allowed"));
   }
-  
+
   // 3. Validar extensión
-  const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx'];
+  const ALLOWED_EXTENSIONS = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".pdf",
+    ".doc",
+    ".docx",
+  ];
   const ext = path.extname(file.originalname).toLowerCase();
-  
+
   if (!ALLOWED_EXTENSIONS.includes(ext)) {
-    return cb(new Error('File extension not allowed'));
+    return cb(new Error("File extension not allowed"));
   }
-  
+
   // 4. Validar contenido real del archivo
   // (Usar librería file-type para detectar tipo real)
   const type = await fileType.fromBuffer(file.buffer);
-  
+
   if (type && !ALLOWED_MIMES.includes(type.mime)) {
-    return cb(new Error('File content does not match extension'));
+    return cb(new Error("File content does not match extension"));
   }
-  
+
   cb(null, true);
 };
 
@@ -603,13 +630,14 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB
-  }
+    fileSize: 5 * 1024 * 1024, // 5MB
+  },
 });
 
-app.post('/api/upload', 
+app.post(
+  "/api/upload",
   authenticateUser,
-  upload.single('file'), 
+  upload.single("file"),
   validateUploadResult,
   (req, res) => {
     // Guardar info de archivo en BD
@@ -619,33 +647,37 @@ app.post('/api/upload',
       storedName: req.file.filename,
       mimeType: req.file.mimetype,
       size: req.file.size,
-      uploadedAt: new Date()
+      uploadedAt: new Date(),
     };
-    
+
     // No servir archivos directamente
     // Usar un endpoint que valida acceso
     res.json({
       fileId: uploadRecord.id,
-      message: 'File uploaded successfully'
+      message: "File uploaded successfully",
     });
   }
 );
 
 // Endpoint seguro para descargar
-app.get('/api/file/:fileId', async (req, res) => {
+app.get("/api/file/:fileId", async (req, res) => {
   const file = await File.findById(req.params.fileId);
-  
+
   if (!file || file.userId !== req.user.id) {
-    return res.status(403).json({ error: 'Access denied' });
+    return res.status(403).json({ error: "Access denied" });
   }
-  
-  const filePath = path.join('/uploads', req.user.id.toString(), file.storedName);
-  
+
+  const filePath = path.join(
+    "/uploads",
+    req.user.id.toString(),
+    file.storedName
+  );
+
   // Validar que existe
   if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ error: 'File not found' });
+    return res.status(404).json({ error: "File not found" });
   }
-  
+
   res.download(filePath, file.originalName);
 });
 
@@ -654,22 +686,22 @@ app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ error: err.message });
   }
-  res.status(500).json({ error: 'Upload failed' });
+  res.status(500).json({ error: "Upload failed" });
 });
 ```
 
 ### 📊 Comparación
 
-| Aspecto | ❌ Vulnerable | ✅ Seguro |
-|---------|---|---|
-| **Validación tamaño** | No | Sí (5MB) |
-| **Validación MIME** | No | Sí |
-| **Validación extensión** | No | Sí |
-| **Validación contenido** | No | Sí |
-| **Nombre aleatorio** | No | Sí |
-| **Aislamiento por usuario** | No | Sí |
-| **Validación acceso** | No | Sí |
-| **Servir en /uploads** | Sí (peligroso) | No |
+| Aspecto                     | ❌ Vulnerable  | ✅ Seguro |
+| --------------------------- | -------------- | --------- |
+| **Validación tamaño**       | No             | Sí (5MB)  |
+| **Validación MIME**         | No             | Sí        |
+| **Validación extensión**    | No             | Sí        |
+| **Validación contenido**    | No             | Sí        |
+| **Nombre aleatorio**        | No             | Sí        |
+| **Aislamiento por usuario** | No             | Sí        |
+| **Validación acceso**       | No             | Sí        |
+| **Servir en /uploads**      | Sí (peligroso) | No        |
 
 ### 🔐 Mejores Prácticas
 
@@ -687,9 +719,11 @@ app.use((err, req, res, next) => {
 ## 6. Insecure CAPTCHA
 
 ### 🎯 ¿Qué es?
+
 Un CAPTCHA débil o predecible que puede ser resuelto automáticamente o reutilizado. Derrota el propósito de verificar humanos.
 
 ### ⚠️ Impacto
+
 - **Criticidad:** 🟡 MEDIA
 - **Riesgo:** Automatización de ataques
 - **Alcance:** Ataques de fuerza bruta, spam
@@ -708,33 +742,33 @@ Un CAPTCHA débil o predecible que puede ser resuelto automáticamente o reutili
 
 ```javascript
 // ❌ VULNERABLE: CAPTCHA débil
-const captcha = require('svg-captcha');
+const captcha = require("svg-captcha");
 
-app.get('/api/captcha', (req, res) => {
+app.get("/api/captcha", (req, res) => {
   // CAPTCHA simple predecible
   const cap = captcha.create({
-    noise: 0,          // Sin ruido
-    size: 4,           // Solo 4 caracteres
-    ignoreChars: '0il1Lo',
-    color: false,      // Blanco y negro
-    background: '#ffffff'
+    noise: 0, // Sin ruido
+    size: 4, // Solo 4 caracteres
+    ignoreChars: "0il1Lo",
+    color: false, // Blanco y negro
+    background: "#ffffff",
   });
-  
+
   req.session.captchaText = cap.text;
-  
-  res.type('svg');
+
+  res.type("svg");
   res.send(cap.data);
 });
 
-app.post('/api/login', (req, res) => {
+app.post("/api/login", (req, res) => {
   const { username, password, captcha } = req.body;
-  
+
   // CAPTCHA nunca expira
   // Se puede reutilizar
   if (captcha !== req.session.captchaText) {
-    return res.status(400).json({ error: 'Invalid CAPTCHA' });
+    return res.status(400).json({ error: "Invalid CAPTCHA" });
   }
-  
+
   // ... login
 });
 ```
@@ -743,126 +777,129 @@ app.post('/api/login', (req, res) => {
 
 ```javascript
 // ✅ SEGURO: CAPTCHA fuerte con expiración
-const captcha = require('svg-captcha');
+const captcha = require("svg-captcha");
 
-app.get('/api/captcha', (req, res) => {
+app.get("/api/captcha", (req, res) => {
   // CAPTCHA complejo
   const cap = captcha.create({
-    noise: 3,                  // Con ruido
-    size: 6,                   // 6 caracteres
-    ignoreChars: '0il1Lo',     // Caracteres ambiguos
-    color: true,               // Color (más difícil para OCR)
-    background: '#ddd',
+    noise: 3, // Con ruido
+    size: 6, // 6 caracteres
+    ignoreChars: "0il1Lo", // Caracteres ambiguos
+    color: true, // Color (más difícil para OCR)
+    background: "#ddd",
     width: 150,
     height: 50,
-    fontSize: 60
+    fontSize: 60,
   });
-  
+
   // Almacenar con expiración (5 minutos)
-  const captchaId = crypto.randomBytes(16).toString('hex');
+  const captchaId = crypto.randomBytes(16).toString("hex");
   const expirationTime = Date.now() + 5 * 60 * 1000; // 5 minutos
-  
+
   req.session.captchas = req.session.captchas || {};
   req.session.captchas[captchaId] = {
     text: cap.text,
     expiresAt: expirationTime,
     attempts: 0,
-    used: false
+    used: false,
   };
-  
+
   // Limpiar CAPTCHAs expirados
-  Object.keys(req.session.captchas).forEach(id => {
+  Object.keys(req.session.captchas).forEach((id) => {
     if (Date.now() > req.session.captchas[id].expiresAt) {
       delete req.session.captchas[id];
     }
   });
-  
-  res.type('svg');
+
+  res.type("svg");
   res.json({
     captchaId: captchaId,
-    image: cap.data
+    image: cap.data,
   });
 });
 
-app.post('/api/login', (req, res) => {
+app.post("/api/login", (req, res) => {
   const { username, password, captchaId, captchaText } = req.body;
-  
+
   if (!captchaId || !req.session.captchas[captchaId]) {
-    return res.status(400).json({ error: 'CAPTCHA not found' });
+    return res.status(400).json({ error: "CAPTCHA not found" });
   }
-  
+
   const stored = req.session.captchas[captchaId];
-  
+
   // 1. Validar que no ha expirado
   if (Date.now() > stored.expiresAt) {
     delete req.session.captchas[captchaId];
-    return res.status(400).json({ error: 'CAPTCHA expired' });
+    return res.status(400).json({ error: "CAPTCHA expired" });
   }
-  
+
   // 2. Validar que no ha sido usado
   if (stored.used) {
-    return res.status(400).json({ error: 'CAPTCHA already used' });
+    return res.status(400).json({ error: "CAPTCHA already used" });
   }
-  
+
   // 3. Limitar intentos (máx 3)
   if (stored.attempts > 3) {
     delete req.session.captchas[captchaId];
-    return res.status(400).json({ error: 'Too many CAPTCHA attempts' });
+    return res.status(400).json({ error: "Too many CAPTCHA attempts" });
   }
-  
+
   // 4. Validar (case-insensitive)
   if (captchaText.toLowerCase() !== stored.text.toLowerCase()) {
     stored.attempts++;
-    return res.status(400).json({ 
-      error: 'Invalid CAPTCHA',
-      attemptsLeft: 3 - stored.attempts
+    return res.status(400).json({
+      error: "Invalid CAPTCHA",
+      attemptsLeft: 3 - stored.attempts,
     });
   }
-  
+
   // 5. Marcar como usado
   stored.used = true;
-  
+
   // ... continuar con login
-  
+
   // 6. Eliminar el CAPTCHA después de usar
   delete req.session.captchas[captchaId];
 });
 
 // Alternativa: Usar Google reCAPTCHA v3 (servidor)
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { username, password, recaptchaToken } = req.body;
-  
+
   // Verificar token con Google
-  const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-    method: 'POST',
-    body: new URLSearchParams({
-      secret: process.env.RECAPTCHA_SECRET_KEY,
-      response: recaptchaToken
-    })
-  });
-  
+  const response = await fetch(
+    "https://www.google.com/recaptcha/api/siteverify",
+    {
+      method: "POST",
+      body: new URLSearchParams({
+        secret: process.env.RECAPTCHA_SECRET_KEY,
+        response: recaptchaToken,
+      }),
+    }
+  );
+
   const data = await response.json();
-  
+
   // Score > 0.5 = probablemente humano
   if (data.score < 0.5) {
-    return res.status(400).json({ error: 'Suspicious activity detected' });
+    return res.status(400).json({ error: "Suspicious activity detected" });
   }
-  
+
   // ... continuar con login
 });
 ```
 
 ### 📊 Comparación
 
-| Aspecto | ❌ Vulnerable | ✅ Seguro |
-|---------|---|---|
-| **Complejidad** | Bajo (4 caracteres) | Alto (6+ caracteres) |
-| **Ruido** | No | Sí |
-| **Color** | No | Sí |
-| **Expiración** | No | Sí (5 min) |
-| **Reutilización** | Sí | No |
-| **Intentos limitados** | No | Sí (3) |
-| **Unique ID** | No | Sí |
+| Aspecto                | ❌ Vulnerable       | ✅ Seguro            |
+| ---------------------- | ------------------- | -------------------- |
+| **Complejidad**        | Bajo (4 caracteres) | Alto (6+ caracteres) |
+| **Ruido**              | No                  | Sí                   |
+| **Color**              | No                  | Sí                   |
+| **Expiración**         | No                  | Sí (5 min)           |
+| **Reutilización**      | Sí                  | No                   |
+| **Intentos limitados** | No                  | Sí (3)               |
+| **Unique ID**          | No                  | Sí                   |
 
 ### 🔐 Mejores Prácticas
 
@@ -879,9 +916,11 @@ app.post('/api/login', async (req, res) => {
 ## 7. SQL Injection
 
 ### 🎯 ¿Qué es?
+
 Cuando entrada del usuario se concatena directamente en consultas SQL. Un atacante puede modificar la lógica de la consulta, acceder a datos, o modificar/eliminar registros.
 
 ### ⚠️ Impacto
+
 - **Criticidad:** 🔴 CRÍTICA
 - **Riesgo:** Acceso total a base de datos
 - **Alcance:** Toda la información de la BD
@@ -906,16 +945,16 @@ SELECT * FROM users WHERE username = 'admin' OR '1'='1' AND password = 'anything
 
 ```javascript
 // ❌ VULNERABLE: Concatenación de SQL
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
-  
+
   // CONCATENACIÓN DIRECTA = INYECCIÓN POSIBLE
   const query = `
     SELECT * FROM users 
     WHERE username = '${username}' 
     AND password = '${password}'
   `;
-  
+
   const user = await db.query(query);
   // ...
 });
@@ -932,58 +971,58 @@ app.post('/api/login', async (req, res) => {
 
 ```javascript
 // ✅ SEGURO: Usar prepared statements (parametrized queries)
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
-  
+
   // 1. Validar entrada
   if (!username || !password) {
-    return res.status(400).json({ error: 'Missing fields' });
+    return res.status(400).json({ error: "Missing fields" });
   }
-  
+
   if (username.length > 50 || password.length > 255) {
-    return res.status(400).json({ error: 'Invalid input' });
+    return res.status(400).json({ error: "Invalid input" });
   }
-  
+
   // 2. Usar parametrized query (? es placeholder)
   const query = `
     SELECT id, username, email FROM users 
     WHERE username = ? AND password = ?
   `;
-  
+
   // Los parámetros se pasan separadamente
   // La BD se encarga de escaparlos
   const [user] = await db.query(query, [username, password]);
-  
+
   if (!user) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(401).json({ error: "Invalid credentials" });
   }
-  
+
   res.json({ token: generateToken(user) });
 });
 
 // O usar ORM (Sequelize, TypeORM)
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
-  
+
   // ORM automáticamente parametriza
   const user = await User.findOne({
     where: {
       username: username,
-      password: password
-    }
+      password: password,
+    },
   });
-  
+
   if (!user) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return res.status(401).json({ error: "Invalid credentials" });
   }
-  
+
   res.json({ token: generateToken(user) });
 });
 
 // Ejemplo con múltiples parámetros
-app.post('/api/search', async (req, res) => {
+app.post("/api/search", async (req, res) => {
   const { category, minPrice, maxPrice, searchTerm } = req.body;
-  
+
   // ✅ SEGURO: Todos los parámetros van separados
   const query = `
     SELECT * FROM products 
@@ -992,14 +1031,14 @@ app.post('/api/search', async (req, res) => {
     AND name LIKE ?
     ORDER BY price ASC
   `;
-  
+
   const products = await db.query(query, [
     category,
     minPrice,
     maxPrice,
-    `%${searchTerm}%`
+    `%${searchTerm}%`,
   ]);
-  
+
   res.json(products);
 });
 
@@ -1013,13 +1052,13 @@ const result = await db.query(query, [req.params.id]);
 
 ### 📊 Comparación
 
-| Aspecto | ❌ Vulnerable | ✅ Seguro |
-|---------|---|---|
-| **Método** | Concatenación | Parametrized queries |
-| **Escapar entrada** | Manual (inseguro) | Automático |
-| **Riesgo** | Alto | Muy bajo |
-| **Legibilidad** | Baja | Alta |
-| **Performance** | Normal | Mejor (cached) |
+| Aspecto             | ❌ Vulnerable     | ✅ Seguro            |
+| ------------------- | ----------------- | -------------------- |
+| **Método**          | Concatenación     | Parametrized queries |
+| **Escapar entrada** | Manual (inseguro) | Automático           |
+| **Riesgo**          | Alto              | Muy bajo             |
+| **Legibilidad**     | Baja              | Alta                 |
+| **Performance**     | Normal            | Mejor (cached)       |
 
 ### 🔐 Mejores Prácticas
 
@@ -1036,9 +1075,11 @@ const result = await db.query(query, [req.params.id]);
 ## 8. Blind SQL Injection
 
 ### 🎯 ¿Qué es?
+
 Una variante de SQL Injection donde el atacante no recibe mensajes de error. Extrae información mediante respuestas booleanas (verdadero/falso) o tiempos.
 
 ### ⚠️ Impacto
+
 - **Criticidad:** 🔴 ALTA
 - **Riesgo:** Acceso a base de datos sin errores visibles
 - **Alcance:** Exfiltración lenta de datos
@@ -1060,16 +1101,16 @@ SELECT * FROM users WHERE id = 1 AND IF(1=1, SLEEP(5), 0)  -- Sleep condicional
 
 ```javascript
 // ❌ VULNERABLE: Sin protección contra blind SQL injection
-app.get('/api/user/:id', async (req, res) => {
+app.get("/api/user/:id", async (req, res) => {
   const { id } = req.params;
-  
+
   // Incluso con parametrización, si el error es visible = problema
-  const user = await db.query('SELECT * FROM users WHERE id = ?', [id]);
-  
+  const user = await db.query("SELECT * FROM users WHERE id = ?", [id]);
+
   if (user.length > 0) {
     res.json(user[0]); // Respuesta diferente
   } else {
-    res.status(404).json({ error: 'User not found' }); // Otra respuesta
+    res.status(404).json({ error: "User not found" }); // Otra respuesta
   }
 });
 
@@ -1083,67 +1124,67 @@ app.get('/api/user/:id', async (req, res) => {
 
 ```javascript
 // ✅ SEGURO: Respuestas genéricas y rate limiting
-const rateLimit = require('express-rate-limit');
+const rateLimit = require("express-rate-limit");
 
 // Rate limiting estricto en queries
 const queryLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minuto
-  max: 10,                 // Máximo 10 requests
-  message: 'Too many requests'
+  max: 10, // Máximo 10 requests
+  message: "Too many requests",
 });
 
-app.get('/api/user/:id', queryLimiter, async (req, res) => {
+app.get("/api/user/:id", queryLimiter, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // 1. Validar ID es número
     if (!/^\d+$/.test(id)) {
-      return res.status(400).json({ error: 'Invalid request' });
+      return res.status(400).json({ error: "Invalid request" });
     }
-    
+
     // 2. Validar rango razonable
     if (id > 999999) {
-      return res.status(400).json({ error: 'Invalid request' });
+      return res.status(400).json({ error: "Invalid request" });
     }
-    
+
     const user = await db.query(
-      'SELECT id, username, email FROM users WHERE id = ? AND active = 1',
+      "SELECT id, username, email FROM users WHERE id = ? AND active = 1",
       [id]
     );
-    
+
     if (user.length > 0) {
       res.json(user[0]);
     } else {
       // ✅ IMPORTANTE: Misma respuesta para error
-      res.status(400).json({ error: 'Invalid request' });
+      res.status(400).json({ error: "Invalid request" });
     }
   } catch (error) {
     // ✅ No revelar detalles del error
-    console.error('Query error:', error);
-    res.status(400).json({ error: 'Invalid request' });
+    console.error("Query error:", error);
+    res.status(400).json({ error: "Invalid request" });
   }
 });
 
 // Alternativa: Usar timeout en BD
-app.get('/api/user/:id', queryLimiter, async (req, res) => {
+app.get("/api/user/:id", queryLimiter, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Timeout de 2 segundos para query
     const user = await Promise.race([
-      db.query('SELECT * FROM users WHERE id = ?', [id]),
+      db.query("SELECT * FROM users WHERE id = ?", [id]),
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), 2000)
-      )
+        setTimeout(() => reject(new Error("Timeout")), 2000)
+      ),
     ]);
-    
+
     if (user.length > 0) {
       res.json(user[0]);
     } else {
-      res.status(400).json({ error: 'Invalid request' });
+      res.status(400).json({ error: "Invalid request" });
     }
   } catch (error) {
-    res.status(400).json({ error: 'Invalid request' });
+    res.status(400).json({ error: "Invalid request" });
   }
 });
 
@@ -1156,10 +1197,10 @@ const detectSQLInjection = (value) => {
     /(\bAND\b.*=.*)/i,
     /(\bDROP\b|\bDELETE\b|\bINSERT\b|\bUPDATE\b)/i,
     /(-{2}|\/\*|\*\/|;|\||&&)/,
-    /(\bSLEEP\b|\bBENCHMARK\b)/i
+    /(\bSLEEP\b|\bBENCHMARK\b)/i,
   ];
-  
-  return sqlPatterns.some(pattern => pattern.test(value));
+
+  return sqlPatterns.some((pattern) => pattern.test(value));
 };
 
 app.use((req, res, next) => {
@@ -1167,31 +1208,31 @@ app.use((req, res, next) => {
   const allParams = {
     ...req.query,
     ...req.body,
-    ...req.params
+    ...req.params,
   };
-  
+
   for (let param in allParams) {
     if (detectSQLInjection(allParams[param])) {
       console.warn(`SQL Injection attempt detected: ${param}`);
-      return res.status(400).json({ error: 'Invalid request' });
+      return res.status(400).json({ error: "Invalid request" });
     }
   }
-  
+
   next();
 });
 ```
 
 ### 📊 Comparación
 
-| Aspecto | ❌ Vulnerable | ✅ Seguro |
-|---------|---|---|
-| **Parametrized** | No | Sí |
-| **Respuestas** | Diferentes | Genéricas |
-| **Rate limiting** | No | Sí |
-| **Validación entrada** | No | Sí |
-| **Timeout query** | No | Sí |
-| **Logging** | No | Sí |
-| **WAF** | No | Sí |
+| Aspecto                | ❌ Vulnerable | ✅ Seguro |
+| ---------------------- | ------------- | --------- |
+| **Parametrized**       | No            | Sí        |
+| **Respuestas**         | Diferentes    | Genéricas |
+| **Rate limiting**      | No            | Sí        |
+| **Validación entrada** | No            | Sí        |
+| **Timeout query**      | No            | Sí        |
+| **Logging**            | No            | Sí        |
+| **WAF**                | No            | Sí        |
 
 ### 🔐 Mejores Prácticas
 
@@ -1208,19 +1249,18 @@ app.use((req, res, next) => {
 
 ## 📊 Resumen de Vulnerabilidades
 
-| # | Vulnerabilidad | CVSS | Impacto | Corrección |
-|---|---|---|---|---|
-| 1 | Brute Force | 7.5 | Alto | Rate limiting + CAPTCHA |
-| 2 | Command Injection | 9.8 | Crítico | execFile + validación |
-| 3 | CSRF | 6.5 | Medio-Alto | Token CSRF |
-| 4 | File Inclusion | 7.5 | Alto | Path validation |
-| 5 | File Upload | 9.1 | Crítico | Validación completa |
-| 6 | Insecure CAPTCHA | 5.3 | Medio | CAPTCHA fuerte + expiración |
-| 7 | SQL Injection | 9.8 | Crítico | Parametrized queries |
-| 8 | Blind SQL Injection | 7.5 | Alto | Rate limit + respuestas genéricas |
+| #   | Vulnerabilidad      | CVSS | Impacto    | Corrección                        |
+| --- | ------------------- | ---- | ---------- | --------------------------------- |
+| 1   | Brute Force         | 7.5  | Alto       | Rate limiting + CAPTCHA           |
+| 2   | Command Injection   | 9.8  | Crítico    | execFile + validación             |
+| 3   | CSRF                | 6.5  | Medio-Alto | Token CSRF                        |
+| 4   | File Inclusion      | 7.5  | Alto       | Path validation                   |
+| 5   | File Upload         | 9.1  | Crítico    | Validación completa               |
+| 6   | Insecure CAPTCHA    | 5.3  | Medio      | CAPTCHA fuerte + expiración       |
+| 7   | SQL Injection       | 9.8  | Crítico    | Parametrized queries              |
+| 8   | Blind SQL Injection | 7.5  | Alto       | Rate limit + respuestas genéricas |
 
 ---
 
 **Documento generado:** 2 de diciembre de 2025  
 **Versión:** 1.0
-

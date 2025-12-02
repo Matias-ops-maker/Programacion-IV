@@ -30,12 +30,12 @@ Se ha realizado una revisión completa de código de los commits de seguridad im
 ```javascript
 // Rate limiting con limite de 5 intentos
 if (attempts > 5) {
-  return res.status(429).json({ error: 'Too many requests' });
+  return res.status(429).json({ error: "Too many requests" });
 }
 
 // Delay progresivo exponencial
 const delay = Math.min(300 * Math.pow(2, attempts - 2), 8000);
-await new Promise(resolve => setTimeout(resolve, delay));
+await new Promise((resolve) => setTimeout(resolve, delay));
 
 // CAPTCHA requerido después de 3 intentos
 if (attempts > 3 && !req.body.captcha) {
@@ -44,6 +44,7 @@ if (attempts > 3 && !req.body.captcha) {
 ```
 
 **Positivos:**
+
 - ✅ Delays exponenciales bien implementados
 - ✅ CAPTCHA requerido tras N intentos
 - ✅ Contador por IP individual
@@ -52,16 +53,19 @@ if (attempts > 3 && !req.body.captcha) {
 #### ⚠️ Lo que FALTA o es DÉBIL:
 
 1. **Persistencia de datos perdida al reiniciar**
+
    - Los contadores están en memoria (`failedAttempts = {}`)
    - Se pierden si el servidor se reinicia
    - **Solución:** Usar Redis o base de datos
 
 2. **Sin registro de intentos en BD**
+
    - No hay auditoría de intentos fallidos
    - No se pueden analizar patrones de ataque
    - **Solución:** Guardar en tabla `login_attempts` con IP, timestamp, usuario
 
 3. **Sin bloqueo temporal de IP**
+
    - Después de exceder límite, no hay bloqueo de segundos/minutos
    - Atacante puede reintentar inmediatamente
    - **Solución:** Implementar bloqueo temporal (e.g., 15 min)
@@ -75,7 +79,7 @@ if (attempts > 3 && !req.body.captcha) {
 
 ```javascript
 // MEJORADO: Con persistencia en Redis
-const redis = require('redis');
+const redis = require("redis");
 const client = redis.createClient();
 
 async function recordFailedAttempt(ip) {
@@ -94,8 +98,8 @@ async function isIPBlocked(ip) {
 
 // Si excede límite, bloquear
 if (attempts > 5) {
-  await client.setex(`blocked:${ip}`, 900, 'blocked'); // 15 min
-  return res.status(429).json({ error: 'Too many requests' });
+  await client.setex(`blocked:${ip}`, 900, "blocked"); // 15 min
+  return res.status(429).json({ error: "Too many requests" });
 }
 ```
 
@@ -129,6 +133,7 @@ const { address } = await dns.lookup(trimmed);
 ```
 
 **Positivos:**
+
 - ✅ Whitelist de caracteres shell bloqueado
 - ✅ Whitelist de hosts permitidos
 - ✅ Validación de formato IP estricta
@@ -137,11 +142,13 @@ const { address } = await dns.lookup(trimmed);
 #### ⚠️ Lo que FALTA:
 
 1. **Whitelist de hosts muy restringida**
+
    - Solo `8.8.8.8`, `1.1.1.1`, `google.com`
    - Poco útil en producción
    - **Solución:** Permitir customización en config
 
 2. **Sin timeout en DNS lookup**
+
    - Un lookup puede colgar indefinidamente
    - **Solución:** Agregar timeout
 
@@ -153,7 +160,7 @@ const { address } = await dns.lookup(trimmed);
 
 ```javascript
 // MEJORADO: Con timeout y mejor manejo
-const { timeout } = require('promise-timeout');
+const { timeout } = require("promise-timeout");
 
 async function pingSecure(host) {
   // Timeout de 5 segundos
@@ -201,6 +208,7 @@ const csrfErrorHandler = (err, req, res, next) => {
 ```
 
 **Positivos:**
+
 - ✅ Token en sesión (no cookie visible)
 - ✅ Validación de Origin/Referer
 - ✅ Error handler específico
@@ -209,17 +217,20 @@ const csrfErrorHandler = (err, req, res, next) => {
 #### ⚠️ Lo que FALTA:
 
 1. **SameSite no está configurado explícitamente**
+
    - No hay seguridad a nivel de cookie
    - **Solución:** Configurar `SameSite=Strict` en sesión
 
 2. **Transfer endpoint NO usa CSRF**
+
    ```javascript
    // VULNERABLE: Sin protección CSRF
    const transfer = (req, res) => {
      // NO hay csrfProtection middleware
      // ...
-   }
+   };
    ```
+
    - La transferencia es endpoint crítico sin CSRF
    - **Solución:** Aplicar middleware CSRF
 
@@ -231,19 +242,22 @@ const csrfErrorHandler = (err, req, res, next) => {
 
 ```javascript
 // MEJORADO: Configuración completa
-app.use(session({
-  // ...
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // HTTPS
-    sameSite: 'strict', // ← AGREGADO
-    maxAge: 3600000
-  }
-}));
+app.use(
+  session({
+    // ...
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS
+      sameSite: "strict", // ← AGREGADO
+      maxAge: 3600000,
+    },
+  })
+);
 
 // Proteger endpoint crítico
-router.post('/api/transfer', 
-  csrfProtection,  // ← AGREGAR
+router.post(
+  "/api/transfer",
+  csrfProtection, // ← AGREGAR
   authenticateUser,
   validateInput,
   transfer
@@ -269,7 +283,7 @@ const ALLOWED_EXTENSIONS = [".txt", ".pdf", ".md"];
 const maliciousTraversalList = [
   "../../../etc/passwd",
   "..\\..\\..\\windows\\system32\\config\\sam",
-  "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd"
+  "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
 ];
 
 // Validación con path.join
@@ -280,6 +294,7 @@ if (!filePath.startsWith(BASE_FILES_PATH)) {
 ```
 
 **Positivos:**
+
 - ✅ Whitelist de archivos específico
 - ✅ Validación de extensiones
 - ✅ Path normalization con `path.join()`
@@ -289,10 +304,12 @@ if (!filePath.startsWith(BASE_FILES_PATH)) {
 #### ⚠️ Lo que FALTA:
 
 1. **Redirecciones con null bytes no bloqueadas**
+
    - `file.txt%00.pdf` podría bypasear en algunos sistemas
    - **Solución:** Agregar validación de null bytes
 
 2. **Sin validación de symlinks**
+
    - Un symlink podría apuntar fuera del directorio
    - **Solución:** Usar `fs.realpathSync()` con validación
 
@@ -310,7 +327,7 @@ if (!filePath.startsWith(BASE_FILES_PATH)) {
 // MEJORADO: Validación más robusta
 function isPathSafe(requestedFile, baseDir) {
   // 1. Verificar null bytes
-  if (requestedFile.includes('\0')) {
+  if (requestedFile.includes("\0")) {
     return false;
   }
 
@@ -343,23 +360,36 @@ if (!ALLOWED_FILES.includes(decoded)) {
 
 ```javascript
 // Whitelist de extensiones permitidas
-const ALLOWED_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.txt', '.pdf']);
+const ALLOWED_EXTENSIONS = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".txt",
+  ".pdf",
+]);
 
 // Whitelist de MIME types
 const ALLOWED_MIME = new Set([
-  'image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'text/plain', 'application/pdf'
+  "image/png",
+  "image/jpg",
+  "image/jpeg",
+  "image/gif",
+  "text/plain",
+  "application/pdf",
 ]);
 
 // Nombre aleatorio para evitar colisiones y ejecución
-const safeName = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
+const safeName = `${Date.now()}-${crypto.randomBytes(8).toString("hex")}${ext}`;
 
 // Validación de tamaño
 limits: {
-  fileSize: 1 * 1024 * 1024 // 1MB
+  fileSize: 1 * 1024 * 1024; // 1MB
 }
 ```
 
 **Positivos:**
+
 - ✅ Whitelist de extensiones
 - ✅ Validación de MIME type
 - ✅ Nombre archivo aleatorio
@@ -369,14 +399,17 @@ limits: {
 #### ⚠️ Lo que FALTA:
 
 1. **Sin validación de contenido real (magic bytes)**
+
    - Un atacante puede enviar `.jpg` que es en realidad PHP
    - **Solución:** Usar librería `file-type` para detectar tipo real
 
 2. **Sin validación de dimensiones de imagen**
+
    - Podría subir imagen malformada o muy grande
    - **Solución:** Usar `jimp` o `sharp` para validar
 
 3. **Sin aislamiento por usuario**
+
    - Todos los archivos en `/uploads` sin organización
    - **Solución:** Crear `/uploads/{userId}/` por usuario
 
@@ -390,34 +423,34 @@ limits: {
 
 ```javascript
 // MEJORADO: Validación completa
-const fileType = require('file-type');
-const fs = require('fs').promises;
+const fileType = require("file-type");
+const fs = require("fs").promises;
 
 const fileFilter = async (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
-  
+
   // 1. Validar extensión
   if (!ALLOWED_EXTENSIONS.has(ext)) {
-    return cb(new Error('Invalid extension'));
+    return cb(new Error("Invalid extension"));
   }
 
   // 2. Validar MIME type reportado
   if (!ALLOWED_MIME.has(file.mimetype)) {
-    return cb(new Error('Invalid MIME type'));
+    return cb(new Error("Invalid MIME type"));
   }
 
   // 3. Validar contenido real
   const type = await fileType.fromBuffer(file.buffer);
   if (!type || !ALLOWED_MIME.has(type.mime)) {
-    return cb(new Error('File content does not match'));
+    return cb(new Error("File content does not match"));
   }
 
   // 4. Para imágenes, validar que es válida
-  if (type.mime.startsWith('image/')) {
+  if (type.mime.startsWith("image/")) {
     try {
       await sharp(file.buffer).metadata();
     } catch (e) {
-      return cb(new Error('Invalid image'));
+      return cb(new Error("Invalid image"));
     }
   }
 
@@ -428,10 +461,12 @@ const fileFilter = async (req, file, cb) => {
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const userDir = path.join(UPLOAD_DIR, req.user.id.toString());
-    fs.mkdir(userDir, { recursive: true }).then(() => {
-      cb(null, userDir);
-    }).catch(cb);
-  }
+    fs.mkdir(userDir, { recursive: true })
+      .then(() => {
+        cb(null, userDir);
+      })
+      .catch(cb);
+  },
 });
 ```
 
@@ -449,7 +484,7 @@ captchaStore[captchaId] = {
   text: captcha.text.toLowerCase(),
   createdAt: Date.now(),
   attempts: 0,
-  used: false
+  used: false,
 };
 
 // Expiración de 5 minutos
@@ -457,16 +492,17 @@ const expired = Date.now() - captcha.createdAt >= 5 * 60 * 1000;
 
 // Límite de intentos
 if (captcha.attempts > 3) {
-  return res.json({ valid: false, error: 'Too many attempts' });
+  return res.json({ valid: false, error: "Too many attempts" });
 }
 
 // Validación de single-use
 if (captcha.used) {
-  return res.json({ valid: false, error: 'already used' });
+  return res.json({ valid: false, error: "already used" });
 }
 ```
 
 **Positivos:**
+
 - ✅ CAPTCHA expira después de 5 minutos
 - ✅ Límite de 3 intentos de validación
 - ✅ Single-use (una sola validación)
@@ -475,27 +511,32 @@ if (captcha.used) {
 #### ⚠️ Lo que FALTA:
 
 1. **CAPTCHA demasiado débil: 4 caracteres**
+
    ```javascript
    const captcha = svgCaptcha.create({
-     size: 4,  // ← MUY DÉBIL
+     size: 4, // ← MUY DÉBIL
      noise: 1, // ← POCO RUIDO
-     color: true
+     color: true,
    });
    ```
+
    - 4 caracteres = 62^4 = ~14 millones combinaciones
    - Con OCR moderno, fácilmente crackeable
    - **Solución:** Usar 6+ caracteres, más ruido
 
 2. **Debug text expuesto en desarrollo**
+
    ```javascript
-   if (process.env.NODE_ENV !== 'production') {
+   if (process.env.NODE_ENV !== "production") {
      response.debug = captcha.text; // ← VULNERABILIDAD EN DEV
    }
    ```
+
    - Devuelve respuesta CAPTCHA en desarrollo
    - **Solución:** Nunca retornar respuesta, ni en dev
 
 3. **Sin persistencia de sesión**
+
    - Almacenado en memoria (`captchaStore = {}`)
    - Se pierde al reiniciar
    - **Solución:** Usar Redis con TTL
@@ -508,34 +549,34 @@ if (captcha.used) {
 
 ```javascript
 // MEJORADO: CAPTCHA más robusto
-const svgCaptcha = require('svg-captcha');
-const redis = require('redis');
+const svgCaptcha = require("svg-captcha");
+const redis = require("redis");
 
 const captcha = svgCaptcha.create({
-  size: 6,      // ← Aumentar a 6 caracteres
-  noise: 3,     // ← Más ruido
+  size: 6, // ← Aumentar a 6 caracteres
+  noise: 3, // ← Más ruido
   color: true,
-  background: '#cccccc', // Fondo menos uniforme
+  background: "#cccccc", // Fondo menos uniforme
   width: 200,
-  height: 60
+  height: 60,
 });
 
 // Guardar en Redis con TTL automático
-const captchaId = crypto.randomBytes(16).toString('hex');
+const captchaId = crypto.randomBytes(16).toString("hex");
 await redis.setex(
   `captcha:${captchaId}`,
   300, // 5 minutos TTL
   JSON.stringify({
     text: captcha.text.toLowerCase(),
     attempts: 0,
-    used: false
+    used: false,
   })
 );
 
 // NUNCA retornar el texto, incluso en dev
 const response = {
   captchaId,
-  captcha: captcha.data
+  captcha: captcha.data,
   // NO incluir response.debug
 };
 ```
@@ -556,7 +597,7 @@ db.query(query, [username], async (err, results) => {
 });
 
 // En checkUsername
-const query = 'SELECT COUNT(*) as count FROM users WHERE username = ?';
+const query = "SELECT COUNT(*) as count FROM users WHERE username = ?";
 db.query(query, [username], (err, results) => {
   // ...
 });
@@ -568,6 +609,7 @@ if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
 ```
 
 **Positivos:**
+
 - ✅ Parametrized queries (?) en todas partes
 - ✅ Validación de formato alfanumérico
 - ✅ Sin concatenación de SQL
@@ -576,6 +618,7 @@ if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
 #### ⚠️ Lo que FALTA:
 
 1. **No hay validación de todas las queries**
+
    - Necesito verificar productos y otras rutas
    - **Solución:** Auditar todas las queries
 
@@ -600,6 +643,7 @@ if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
 #### ⚠️ Gaps:
 
 1. **Sin rate limiting en queries**
+
    - Un atacante podría intentar time-based blind SQLi lentamente
    - **Solución:** Rate limit global en todas las queries
 
@@ -620,8 +664,8 @@ const queryWithTimeout = (query, params, timeout = 5000) => {
       });
     }),
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Query timeout')), timeout)
-    )
+      setTimeout(() => reject(new Error("Query timeout")), timeout)
+    ),
   ]);
 };
 ```
@@ -630,16 +674,16 @@ const queryWithTimeout = (query, params, timeout = 5000) => {
 
 ## 📊 Tabla Comparativa de Implementación
 
-| Vulnerabilidad          | Implementado | Completitud | Robustez | Escalable |
-|-------------------------|--------------|-------------|----------|-----------|
-| Brute Force             | ✅           | 70%         | Media    | No        |
-| Command Injection       | ✅           | 80%         | Alta     | Sí        |
-| CSRF Protection         | ✅           | 75%         | Media    | Sí        |
-| File Inclusion (LFI)    | ✅           | 85%         | Alta     | Sí        |
-| File Upload             | ✅           | 80%         | Media    | No        |
-| Insecure CAPTCHA        | ✅           | 70%         | Baja     | No        |
-| SQL Injection           | ✅           | 90%         | Muy Alta | Sí        |
-| Blind SQL Injection     | ✅           | 85%         | Alta     | Sí        |
+| Vulnerabilidad       | Implementado | Completitud | Robustez | Escalable |
+| -------------------- | ------------ | ----------- | -------- | --------- |
+| Brute Force          | ✅           | 70%         | Media    | No        |
+| Command Injection    | ✅           | 80%         | Alta     | Sí        |
+| CSRF Protection      | ✅           | 75%         | Media    | Sí        |
+| File Inclusion (LFI) | ✅           | 85%         | Alta     | Sí        |
+| File Upload          | ✅           | 80%         | Media    | No        |
+| Insecure CAPTCHA     | ✅           | 70%         | Baja     | No        |
+| SQL Injection        | ✅           | 90%         | Muy Alta | Sí        |
+| Blind SQL Injection  | ✅           | 85%         | Alta     | Sí        |
 
 **Promedio:** 81% ✅
 
@@ -650,11 +694,13 @@ const queryWithTimeout = (query, params, timeout = 5000) => {
 ### 🔴 Críticas (implementar inmediatamente):
 
 1. **Persistencia en Redis**
+
    - Brute force: Contador pierde reinicio
    - CAPTCHA: Datos se pierden
    - **Impacto:** Sistema no funciona en múltiples instancias
 
 2. **CSRF en endpoint transfer**
+
    - Transferencia sin protección CSRF
    - **Impacto:** Crítico para funcionalidad
 
@@ -665,10 +711,12 @@ const queryWithTimeout = (query, params, timeout = 5000) => {
 ### 🟡 Altas (implementar pronto):
 
 4. **CAPTCHA más fuerte**
+
    - 4 caracteres es débil
    - **Impacto:** Fácilmente crackeable
 
 5. **Rate limiting en todas las queries**
+
    - Sin protección blind SQLi lento
    - **Impacto:** Vulnerabilidad explotable
 

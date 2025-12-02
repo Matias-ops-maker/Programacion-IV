@@ -1,6 +1,7 @@
 # 🔐 Guía de Configuración y Testing - WebApp-Seguridad-Prog4
 
 ## 📋 Contenido
+
 1. [Descripción General](#descripción-general)
 2. [Requisitos Previos](#requisitos-previos)
 3. [Verificación Inicial](#verificación-inicial)
@@ -14,6 +15,7 @@
 ## 🎯 Descripción General
 
 Esta guía te ayudará a:
+
 - ✅ Verificar que Docker Compose funcione correctamente
 - ✅ Ejecutar todos los tests de seguridad
 - ✅ Validar la aplicación end-to-end
@@ -28,10 +30,12 @@ Esta guía te ayudará a:
 ### Instalaciones Necesarias
 
 1. **Docker Desktop** (incluye Docker y Docker Compose)
+
    - Windows/Mac: https://www.docker.com/products/docker-desktop
    - Linux: `sudo apt-get install docker.io docker-compose`
 
 2. **Node.js** (v14 o superior)
+
    - https://nodejs.org/
    - Verifica: `node --version` y `npm --version`
 
@@ -95,30 +99,33 @@ bash verify-e2e.sh
 
 La suite de tests verifica 8 vulnerabilidades críticas:
 
-| # | Vulnerabilidad | Descripción |
-|---|---|---|
-| 1 | **Brute Force** | Protección contra ataques de fuerza bruta |
-| 2 | **Command Injection** | Prevención de inyección de comandos |
-| 3 | **CSRF Protection** | Token CSRF en formularios |
-| 4 | **File Inclusion** | Prevención de inclusión de archivos |
-| 5 | **File Upload** | Validación segura de subida de archivos |
-| 6 | **Insecure CAPTCHA** | CAPTCHA seguro |
-| 7 | **SQL Injection** | Prevención de inyección SQL |
-| 8 | **Blind SQL Injection** | Prevención de inyección SQL ciega |
+| #   | Vulnerabilidad          | Descripción                               |
+| --- | ----------------------- | ----------------------------------------- |
+| 1   | **Brute Force**         | Protección contra ataques de fuerza bruta |
+| 2   | **Command Injection**   | Prevención de inyección de comandos       |
+| 3   | **CSRF Protection**     | Token CSRF en formularios                 |
+| 4   | **File Inclusion**      | Prevención de inclusión de archivos       |
+| 5   | **File Upload**         | Validación segura de subida de archivos   |
+| 6   | **Insecure CAPTCHA**    | CAPTCHA seguro                            |
+| 7   | **SQL Injection**       | Prevención de inyección SQL               |
+| 8   | **Blind SQL Injection** | Prevención de inyección SQL ciega         |
 
 ### Ejecutar Tests
 
 #### Windows (PowerShell)
+
 ```powershell
 .\run-security-tests.ps1
 ```
 
 #### Linux/Mac (Bash)
+
 ```bash
 bash run-security-tests.sh
 ```
 
 O manualmente:
+
 ```bash
 cd backend
 npm install
@@ -141,11 +148,13 @@ El script genera un reporte automático con timestamp en la raíz del proyecto.
 Verifica que todos los servicios funcionen correctamente:
 
 ### Windows (PowerShell)
+
 ```powershell
 .\verify-e2e.ps1
 ```
 
 ### Linux/Mac (Bash)
+
 ```bash
 bash verify-e2e.sh
 ```
@@ -175,16 +184,19 @@ Una vez validado, puedes acceder a:
 Ejecuta todas las verificaciones en orden:
 
 #### Windows
+
 ```powershell
 .\verify-all.ps1
 ```
 
 #### Linux/Mac
+
 ```bash
 bash verify-all.sh
 ```
 
 **Incluye:**
+
 1. Verificación de Docker
 2. Inicio de servicios Docker
 3. Validación E2E
@@ -194,6 +206,7 @@ bash verify-all.sh
 ### Scripts Individuales
 
 #### 1. Verificar Docker
+
 ```bash
 # Windows
 .\verify-docker.ps1
@@ -203,6 +216,7 @@ bash verify-docker.sh
 ```
 
 #### 2. Validar E2E
+
 ```bash
 # Windows
 .\verify-e2e.ps1
@@ -212,6 +226,7 @@ bash verify-e2e.sh
 ```
 
 #### 3. Ejecutar Tests de Seguridad
+
 ```bash
 # Windows
 .\run-security-tests.ps1
@@ -249,6 +264,7 @@ TEST_REPORT_YYYYMMDD_HHMMSS.md
 ### Problema: Docker no inicia
 
 **Solución:**
+
 ```bash
 # Reinicia Docker Desktop o el daemon
 docker restart
@@ -260,6 +276,7 @@ sudo systemctl restart docker
 ### Problema: Puerto ya en uso
 
 **Solución:**
+
 ```bash
 # Mira qué está usando el puerto (ejemplo: 5000)
 # Windows
@@ -274,6 +291,7 @@ lsof -i :5000
 ### Problema: Servicios no inician correctamente
 
 **Solución:**
+
 ```bash
 # Ver logs de los servicios
 docker-compose logs
@@ -291,6 +309,7 @@ docker-compose up --build
 ### Problema: Dependencias de Node no instalan
 
 **Solución:**
+
 ```bash
 cd backend
 
@@ -307,6 +326,7 @@ npm ci
 ### Problema: Tests fallan sin motivo aparente
 
 **Solución:**
+
 ```bash
 # Asegúrate que los servicios estén corriendo
 docker-compose ps
@@ -368,4 +388,3 @@ En caso de problemas no resueltos:
 **Última actualización:** 2 de diciembre de 2025
 
 **Estado:** ✅ Listo para usar
-

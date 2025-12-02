@@ -9,6 +9,7 @@
 ## 📦 Archivos Creados
 
 ### 📖 Documentación (5 archivos)
+
 ```
 ✅ START_HERE.md              → Guía de inicio rápido (5 minutos)
 ✅ SETUP_GUIDE.md             → Guía completa de configuración
@@ -18,6 +19,7 @@
 ```
 
 ### 🔧 Scripts Windows PowerShell (4 archivos)
+
 ```
 ✅ verify-docker.ps1          → Verifica Docker Compose (30s)
 ✅ verify-e2e.ps1             → Valida servicios funcionando (1-2 min)
@@ -26,6 +28,7 @@
 ```
 
 ### 🐧 Scripts Linux/Mac Bash (4 archivos)
+
 ```
 ✅ verify-docker.sh           → Verifica Docker Compose (30s)
 ✅ verify-e2e.sh              → Valida servicios funcionando (1-2 min)
@@ -42,12 +45,14 @@
 ### Opción 1: Verificación Automática Completa (RECOMENDADO)
 
 #### En Windows (PowerShell):
+
 ```powershell
 cd "c:\Users\Ignacio\Desktop\Programacion-IV\4 - Trabajo Practico 4\WebApp-Seguridad-Prog4"
 .\verify-all.ps1
 ```
 
 #### En Linux/Mac (Terminal/Bash):
+
 ```bash
 cd "4 - Trabajo Practico 4/WebApp-Seguridad-Prog4"
 bash verify-all.sh
@@ -82,33 +87,43 @@ bash run-security-tests.sh  # Linux/Mac
 ## 📚 DOCUMENTACIÓN POR USUARIO
 
 ### 👤 Usuario Nuevo
+
 → Lee: **START_HERE.md** (5 minutos)
+
 - Guía rápida
 - Comandos básicos
 - Solución de problemas comunes
 
 ### 📚 Usuario Técnico
+
 → Lee: **SETUP_GUIDE.md** (20 minutos)
+
 - Requisitos previos detallados
 - Instalación paso a paso
 - Guía de troubleshooting exhaustiva
 - Checklist de verificación
 
 ### ⚡ Usuario Impaciente
+
 → Lee: **QUICK_REFERENCE.md** (5 minutos)
+
 - Todos los comandos útiles
 - Cheat sheets
 - Tips y trucos
 
 ### 🔧 Desarrollador
+
 → Lee: **WORK_SUMMARY.md** (15 minutos)
+
 - Arquitectura técnica
 - Descripción de scripts
 - Flujos de trabajo
 - Información sobre vulnerabilidades
 
 ### 🗂️ Referencia General
+
 → Lee: **DOCUMENTATION_INDEX.md**
+
 - Índice de todo
 - Flujos de trabajo típicos
 - Estructura del proyecto
@@ -118,6 +133,7 @@ bash run-security-tests.sh  # Linux/Mac
 ## ✅ QUÉ SE VERIFICA
 
 ### Docker Compose ✓
+
 - ✅ Docker instalado
 - ✅ Docker Compose instalado
 - ✅ Docker Daemon activo
@@ -126,6 +142,7 @@ bash run-security-tests.sh  # Linux/Mac
 - ✅ Puertos disponibles
 
 ### End-to-End ✓
+
 - ✅ MySQL activo (puerto 3306)
 - ✅ Backend API activo (puerto 5000)
 - ✅ Frontend accesible (puerto 3000)
@@ -133,6 +150,7 @@ bash run-security-tests.sh  # Linux/Mac
 - ✅ Health checks con reintentos
 
 ### Seguridad ✓
+
 - ✅ Test 1: Brute Force Protection
 - ✅ Test 2: Command Injection Prevention
 - ✅ Test 3: CSRF Protection
@@ -148,14 +166,15 @@ bash run-security-tests.sh  # Linux/Mac
 
 Una vez que todo está corriendo:
 
-| Servicio | URL | Estado |
-|----------|-----|--------|
-| **Frontend** | http://localhost:3000 | Interfaz web |
-| **Backend API** | http://localhost:5000/api | API REST |
-| **Productos** | http://localhost:5000/api/products | Datos |
-| **CAPTCHA** | http://localhost:5000/api/auth/captcha | Autenticación |
+| Servicio        | URL                                    | Estado        |
+| --------------- | -------------------------------------- | ------------- |
+| **Frontend**    | http://localhost:3000                  | Interfaz web  |
+| **Backend API** | http://localhost:5000/api              | API REST      |
+| **Productos**   | http://localhost:5000/api/products     | Datos         |
+| **CAPTCHA**     | http://localhost:5000/api/auth/captcha | Autenticación |
 
 ### Credenciales de Prueba
+
 ```
 Usuario: admin
 Contraseña: admin123
@@ -199,6 +218,7 @@ WebApp-Seguridad-Prog4/
 ## 🎯 CARACTERÍSTICAS PRINCIPALES
 
 ### ✨ Scripts Automatizados
+
 - ✅ Ejecutables en Windows y Linux/Mac
 - ✅ Validación completa automática
 - ✅ Logging con timestamp automático
@@ -207,6 +227,7 @@ WebApp-Seguridad-Prog4/
 - ✅ Mensajes claros y amigables
 
 ### 📚 Documentación Completa
+
 - ✅ Guía de inicio rápido
 - ✅ Guía de configuración detallada
 - ✅ Referencia rápida de comandos
@@ -215,6 +236,7 @@ WebApp-Seguridad-Prog4/
 - ✅ Solución de problemas
 
 ### 🔒 Validaciones de Seguridad
+
 - ✅ 8 tests de vulnerabilidades
 - ✅ Health checks automáticos
 - ✅ Validación de configuración
@@ -225,7 +247,9 @@ WebApp-Seguridad-Prog4/
 ## 🚀 PRÓXIMOS PASOS
 
 ### Ahora (5 minutos)
+
 1. Ejecuta el script maestro
+
    ```bash
    .\verify-all.ps1  # o bash verify-all.sh
    ```
@@ -235,11 +259,13 @@ WebApp-Seguridad-Prog4/
 3. Verifica que todo esté ✅
 
 ### Luego (10 minutos)
+
 1. Lee START_HERE.md
 2. Accede a http://localhost:3000
 3. Prueba la aplicación
 
 ### Después (Variable)
+
 1. Revisa SETUP_GUIDE.md si necesitas detalles
 2. Consulta QUICK_REFERENCE.md para comandos
 3. Trabaja en corregir vulnerabilidades
@@ -249,6 +275,7 @@ WebApp-Seguridad-Prog4/
 ## 💡 TIPS IMPORTANTES
 
 ### Para Windows
+
 ```powershell
 # Ejecuta PowerShell como Administrador
 # Permite ejecución de scripts si necesario
@@ -256,6 +283,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 ### Para Linux/Mac
+
 ```bash
 # Dale permisos de ejecución a scripts
 chmod +x verify-*.sh
@@ -263,6 +291,7 @@ chmod +x run-*.sh
 ```
 
 ### Verificación Rápida
+
 ```bash
 # ¿Está Docker corriendo?
 docker-compose ps
@@ -288,13 +317,13 @@ Esta aplicación **contiene vulnerabilidades intencionales** para fines educativ
 
 ## 📞 AYUDA RÁPIDA
 
-| Problema | Solución |
-|----------|----------|
-| Docker no instalado | Descargalo desde https://www.docker.com/ |
-| Puerto en uso | Cambia puerto en docker-compose.yml |
-| Servicios no inician | Ejecuta `docker-compose logs` para ver errores |
-| Tests fallan | Espera más tiempo a que BD esté lista |
-| Node modules no instala | `cd backend && npm install` |
+| Problema                | Solución                                       |
+| ----------------------- | ---------------------------------------------- |
+| Docker no instalado     | Descargalo desde https://www.docker.com/       |
+| Puerto en uso           | Cambia puerto en docker-compose.yml            |
+| Servicios no inician    | Ejecuta `docker-compose logs` para ver errores |
+| Tests fallan            | Espera más tiempo a que BD esté lista          |
+| Node modules no instala | `cd backend && npm install`                    |
 
 **→ Más ayuda:** Ver SETUP_GUIDE.md
 
@@ -302,14 +331,14 @@ Esta aplicación **contiene vulnerabilidades intencionales** para fines educativ
 
 ## 📈 MÉTRICAS
 
-| Métrica | Valor |
-|---------|-------|
-| Scripts creados | 8 (4 Bash + 4 PowerShell) |
-| Documentos | 5 archivos .md |
-| Líneas de código | ~2000+ líneas |
-| Tests de seguridad | 8 vulnerabilidades |
-| Plataformas soportadas | Windows, Linux, Mac |
-| Tiempo de setup | 5-10 minutos |
+| Métrica                | Valor                     |
+| ---------------------- | ------------------------- |
+| Scripts creados        | 8 (4 Bash + 4 PowerShell) |
+| Documentos             | 5 archivos .md            |
+| Líneas de código       | ~2000+ líneas             |
+| Tests de seguridad     | 8 vulnerabilidades        |
+| Plataformas soportadas | Windows, Linux, Mac       |
+| Tiempo de setup        | 5-10 minutos              |
 
 ---
 
@@ -331,6 +360,7 @@ Esta aplicación **contiene vulnerabilidades intencionales** para fines educativ
 ## 🎓 RECURSOS DISPONIBLES
 
 ### Dentro del Proyecto
+
 - `SETUP_GUIDE.md` - Guía completa
 - `QUICK_REFERENCE.md` - Comandos rápidos
 - `DOCUMENTATION_INDEX.md` - Índice completo
@@ -338,11 +368,13 @@ Esta aplicación **contiene vulnerabilidades intencionales** para fines educativ
 - `START_HERE.md` - Para comenzar
 
 ### En el Backend
+
 - `backend/INSTRUCCIONES.md` - Vulnerabilidades a corregir
 - `backend/jest.config.js` - Config de tests
 - `backend/test/` - Tests de seguridad
 
 ### En el Proyecto
+
 - `docker-compose.yml` - Orquestación
 - `backend/init.sql` - BD inicial
 - `README.md` - Info general
@@ -354,11 +386,13 @@ Esta aplicación **contiene vulnerabilidades intencionales** para fines educativ
 ### Comando para Empezar
 
 **Windows:**
+
 ```powershell
 .\verify-all.ps1
 ```
 
 **Linux/Mac:**
+
 ```bash
 bash verify-all.sh
 ```
@@ -366,6 +400,7 @@ bash verify-all.sh
 ---
 
 ### Resultado Esperado
+
 ```
 ✅ TODAS LAS VERIFICACIONES PASARON ✅
 ```
@@ -388,4 +423,3 @@ Minuto 20+:   Trabajar en la aplicación
 **Versión:** 1.0  
 **Estado:** ✅ Completado  
 **Última actualización:** 2 de diciembre de 2025
-

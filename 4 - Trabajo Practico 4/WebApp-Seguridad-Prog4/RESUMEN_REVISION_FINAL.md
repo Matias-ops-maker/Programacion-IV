@@ -10,14 +10,14 @@
 
 ### Puntuación Final: **7.5/10**
 
-| Aspecto | Puntuación | Comentario |
-|---------|-----------|-----------|
-| Comprensión de conceptos | 8/10 | Buena, demuestra entendimiento |
-| Implementación funcional | 8/10 | Protecciones básicas funcionan |
-| Robustez y escalabilidad | 6/10 | Gaps importantes en persistencia |
-| Testing y validación | 7/10 | Tests cubren casos básicos |
-| Documentación | 7/10 | Código comentado, falta documentación |
-| **Promedio** | **7.5/10** | **Bueno con mejoras necesarias** |
+| Aspecto                  | Puntuación | Comentario                            |
+| ------------------------ | ---------- | ------------------------------------- |
+| Comprensión de conceptos | 8/10       | Buena, demuestra entendimiento        |
+| Implementación funcional | 8/10       | Protecciones básicas funcionan        |
+| Robustez y escalabilidad | 6/10       | Gaps importantes en persistencia      |
+| Testing y validación     | 7/10       | Tests cubren casos básicos            |
+| Documentación            | 7/10       | Código comentado, falta documentación |
+| **Promedio**             | **7.5/10** | **Bueno con mejoras necesarias**      |
 
 ---
 
@@ -60,6 +60,7 @@
 - ⚠️ **Débil:** CAPTCHA solo 4 caracteres
 
 **Acciones:**
+
 1. Migrar a Redis para persistencia
 2. Aumentar CAPTCHA a 6 caracteres
 
@@ -75,6 +76,7 @@
 - ⚠️ **Falta:** Aislamiento de uploads por usuario
 
 **Acciones:**
+
 1. Implementar validación de magic bytes
 2. Crear subdirectorios por usuario
 
@@ -90,6 +92,7 @@
 - ⚠️ **Falta:** Tests para casos edge
 
 **Acciones:** Agregar tests para:
+
 - Unicode/UTF-8 injection
 - Double encoding
 - Time-based blind SQLi
@@ -101,10 +104,12 @@
 ### 🔴 CRÍTICOS (Corregir inmediatamente):
 
 1. **Transfer sin CSRF**
+
    - **Riesgo:** Atacante puede transferir fondos
    - **Fix:** 5 minutos
 
 2. **Contadores en memoria**
+
    - **Riesgo:** Protecciones se pierden en reinicio
    - **Fix:** 30 minutos con Redis
 
@@ -115,10 +120,12 @@
 ### 🟡 ALTOS (Mejoras significativas):
 
 4. **CAPTCHA débil (4 caracteres)**
+
    - **Riesgo:** Crackeable con OCR
    - **Fix:** 10 minutos
 
 5. **Sin rate limit en queries**
+
    - **Riesgo:** Blind SQLi lento
    - **Fix:** 45 minutos
 
@@ -129,6 +136,7 @@
 ### 🟢 BAJOS (Mejoras organizacionales):
 
 7. **Uploads no aislados por usuario**
+
    - **Riesgo:** Bajo (acceso es público)
    - **Fix:** 30 minutos
 
@@ -183,6 +191,7 @@
 ## 🚀 Recomendaciones para Próximos Proyectos
 
 ### 1. Usar Framework de Seguridad
+
 ```bash
 # Usar Express.js con helmet.js
 npm install helmet
@@ -190,23 +199,27 @@ app.use(helmet()); // Establece headers de seguridad automáticamente
 ```
 
 ### 2. Integrar SAST (Static Application Security Testing)
+
 ```bash
 # npm install --save-dev snyk
 npm run snyk test
 ```
 
 ### 3. Usar ORM seguro
+
 ```bash
 # Sequelize o TypeORM parametrizan automáticamente
 const users = await User.findAll({ where: { username } });
 ```
 
 ### 4. Implementar WAF (Web Application Firewall)
+
 ```bash
 # modsecurity en nginx o express-rate-limit + validación
 ```
 
 ### 5. Testing de seguridad automatizado
+
 ```bash
 # OWASP ZAP, Burp Suite Community
 # O integrar tests como los que hicieron
@@ -217,15 +230,18 @@ const users = await User.findAll({ where: { username } });
 ## 📚 Recursos Recomendados
 
 ### Libros:
+
 - "Web Application Security" - Andrew Hoffman
 - "OWASP Testing Guide v4.0"
 
 ### Online:
+
 - OWASP.org - Top 10 vulnerabilities
 - PortSwigger Web Security Academy (gratis)
 - HackTheBox.com - Práctica segura
 
 ### Herramientas:
+
 - **OWASP ZAP** - Scanner de vulnerabilidades
 - **Snyk** - Scanning de dependencias
 - **git-secrets** - Prevenir secrets en git

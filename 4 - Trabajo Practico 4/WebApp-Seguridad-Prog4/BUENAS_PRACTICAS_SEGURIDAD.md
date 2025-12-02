@@ -26,22 +26,22 @@
 **¿Por qué?** Previene ataques de fuerza bruta y diccionario
 
 ```javascript
-const express = require('express');
-const rateLimit = require('express-rate-limit');
+const express = require("express");
+const rateLimit = require("express-rate-limit");
 
 // PATRÓN SEGURO
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutos
-  max: 5,                     // 5 intentos
-  keyGenerator: (req) => req.ip + ':' + req.body.username,
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 5, // 5 intentos
+  keyGenerator: (req) => req.ip + ":" + req.body.username,
   handler: (req, res) => {
     // Logging de seguridad
     console.warn(`Brute force attempt: ${req.ip} - ${req.body.username}`);
-    res.status(429).json({ error: 'Too many attempts' });
-  }
+    res.status(429).json({ error: "Too many attempts" });
+  },
 });
 
-app.post('/login', authLimiter, authenticateController);
+app.post("/login", authLimiter, authenticateController);
 ```
 
 ### ✅ Principio 2: CAPTCHA después de N Intentos
@@ -52,20 +52,20 @@ app.post('/login', authLimiter, authenticateController);
 // PATRÓN SEGURO
 async function login(req, res) {
   const { username, password, captchaToken } = req.body;
-  
+
   // Contar intentos fallidos
-  const failedAttempts = await getFailedAttempts(username, '15min');
-  
+  const failedAttempts = await getFailedAttempts(username, "15min");
+
   if (failedAttempts >= 3) {
     // Requerir CAPTCHA
     if (!captchaToken || !validateCaptcha(captchaToken)) {
-      return res.status(403).json({ 
-        error: 'CAPTCHA required',
-        captchaRequired: true 
+      return res.status(403).json({
+        error: "CAPTCHA required",
+        captchaRequired: true,
       });
     }
   }
-  
+
   // Autenticar...
 }
 ```
@@ -76,8 +76,8 @@ async function login(req, res) {
 
 ```javascript
 // ❌ INSEGURO
-if (!user) return res.json({ error: 'User not found' });
-if (password !== user.password) return res.json({ error: 'Invalid password' });
+if (!user) return res.json({ error: "User not found" });
+if (password !== user.password) return res.json({ error: "Invalid password" });
 
 // ✅ SEGURO
 const user = await User.findByUsername(username);
@@ -85,7 +85,7 @@ const valid = user && bcrypt.compareSync(password, user.passwordHash);
 
 if (!valid) {
   // Mismo mensaje en ambos casos
-  return res.status(401).json({ error: 'Invalid credentials' });
+  return res.status(401).json({ error: "Invalid credentials" });
 }
 ```
 
@@ -95,19 +95,21 @@ if (!valid) {
 
 ```javascript
 // PATRÓN SEGURO
-const session = require('express-session');
+const session = require("express-session");
 
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: true,        // Solo HTTPS
-    httpOnly: true,      // ✅ No accesible desde JS (previene XSS)
-    sameSite: 'strict',  // ✅ No se envía en cross-site (previene CSRF)
-    maxAge: 1000 * 60 * 60  // 1 hora
-  }
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: true, // Solo HTTPS
+      httpOnly: true, // ✅ No accesible desde JS (previene XSS)
+      sameSite: "strict", // ✅ No se envía en cross-site (previene CSRF)
+      maxAge: 1000 * 60 * 60, // 1 hora
+    },
+  })
+);
 ```
 
 ### ✅ Principio 5: Hash de Contraseñas
@@ -115,16 +117,16 @@ app.use(session({
 **¿Por qué?** Nunca almacenar contraseñas en texto plano
 
 ```javascript
-const bcrypt = require('bcrypt');
+const bcrypt = require("bcrypt");
 
 // PATRÓN SEGURO
 async function createUser(username, password) {
   // Hash con salt aleatorio (10 rondas por defecto)
   const passwordHash = await bcrypt.hash(password, 10);
-  
+
   await User.create({
     username,
-    passwordHash  // ← Nunca la contraseña original
+    passwordHash, // ← Nunca la contraseña original
   });
 }
 
@@ -144,14 +146,14 @@ async function validatePassword(rawPassword, hash) {
 
 ```javascript
 // ❌ INSEGURO (Blacklist)
-if (!username.includes(';') && !username.includes('--')) {
+if (!username.includes(";") && !username.includes("--")) {
   // Valida... ¡pero hay 100 formas de inyectar!
 }
 
 // ✅ SEGURO (Whitelist)
 const isValid = /^[a-zA-Z0-9_]{3,20}$/.test(username);
 if (!isValid) {
-  return res.status(400).json({ error: 'Invalid username' });
+  return res.status(400).json({ error: "Invalid username" });
 }
 ```
 
@@ -163,20 +165,20 @@ if (!isValid) {
 // PATRÓN SEGURO
 function validateInput(data) {
   const schema = {
-    email: 'string|email',
-    age: 'number|min:0|max:120',
-    role: 'enum:user,admin,moderator'
+    email: "string|email",
+    age: "number|min:0|max:120",
+    role: "enum:user,admin,moderator",
   };
-  
+
   // Usar librería de validación (Joi, Yup, etc)
   const { error, value } = schema.validate(data);
-  
+
   if (error) {
-    return res.status(400).json({ 
-      error: error.details.map(d => d.message) 
+    return res.status(400).json({
+      error: error.details.map((d) => d.message),
     });
   }
-  
+
   return value;
 }
 ```
@@ -192,7 +194,7 @@ const MAX_EMAIL_LENGTH = 254;
 const MAX_BIO_LENGTH = 5000;
 
 if (username.length > MAX_USERNAME_LENGTH) {
-  return res.status(400).json({ error: 'Username too long' });
+  return res.status(400).json({ error: "Username too long" });
 }
 ```
 
@@ -202,24 +204,24 @@ if (username.length > MAX_USERNAME_LENGTH) {
 
 ```javascript
 // Para datos en BD (usar parametrized queries)
-const query = 'SELECT * FROM users WHERE email = ?';
-db.query(query, [email]);  // ← El DB escapa automáticamente
+const query = "SELECT * FROM users WHERE email = ?";
+db.query(query, [email]); // ← El DB escapa automáticamente
 
 // Para mostrar en HTML
 const escapeHtml = (text) => {
   const map = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;'
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
   };
-  return text.replace(/[&<>"']/g, m => map[m]);
+  return text.replace(/[&<>"']/g, (m) => map[m]);
 };
 
 // Para URLs
 const params = new URLSearchParams({ search: userInput });
-const url = `https://api.example.com?${params}`;  // Automático
+const url = `https://api.example.com?${params}`; // Automático
 ```
 
 ---
@@ -251,17 +253,20 @@ const sanitized = DOMPurify.sanitize(htmlContent);
 ```javascript
 // PATRÓN SEGURO
 app.use((req, res, next) => {
-  res.setHeader('Content-Security-Policy', [
-    "default-src 'self'",                    // Solo scripts del mismo origen
-    "script-src 'self' cdn.example.com",     // Scripts permitidos
-    "style-src 'self' 'unsafe-inline'",      // CSS permitido
-    "img-src 'self' data: https:",           // Imágenes
-    "font-src 'self'",                       // Fuentes
-    "connect-src 'self' api.example.com",    // APIs permitidas
-    "frame-ancestors 'none'",                // No puede embeberse
-    "base-uri 'self'",                       // Base URL
-    "form-action 'self'"                     // Dónde se envían formularios
-  ].join('; '));
+  res.setHeader(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'", // Solo scripts del mismo origen
+      "script-src 'self' cdn.example.com", // Scripts permitidos
+      "style-src 'self' 'unsafe-inline'", // CSS permitido
+      "img-src 'self' data: https:", // Imágenes
+      "font-src 'self'", // Fuentes
+      "connect-src 'self' api.example.com", // APIs permitidas
+      "frame-ancestors 'none'", // No puede embeberse
+      "base-uri 'self'", // Base URL
+      "form-action 'self'", // Dónde se envían formularios
+    ].join("; ")
+  );
   next();
 });
 ```
@@ -272,17 +277,17 @@ app.use((req, res, next) => {
 
 ```javascript
 // PATRÓN SEGURO - Middleware de seguridad
-const helmet = require('helmet');
+const helmet = require("helmet");
 
-app.use(helmet());  // Establece automáticamente:
+app.use(helmet()); // Establece automáticamente:
 
 // Manualmente si es necesario:
 app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');      // No adivinar MIME
-  res.setHeader('X-Frame-Options', 'DENY');                 // No iframes
-  res.setHeader('X-XSS-Protection', '1; mode=block');       // Protección XSS
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=()');
+  res.setHeader("X-Content-Type-Options", "nosniff"); // No adivinar MIME
+  res.setHeader("X-Frame-Options", "DENY"); // No iframes
+  res.setHeader("X-XSS-Protection", "1; mode=block"); // Protección XSS
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "geolocation=(), microphone=()");
   next();
 });
 ```
@@ -297,32 +302,32 @@ app.use((req, res, next) => {
 
 ```javascript
 // PATRÓN SEGURO
-const crypto = require('crypto');
-const path = require('path');
+const crypto = require("crypto");
+const path = require("path");
 
 async function saveUploadedFile(file, userId) {
   // 1. Generar nombre aleatorio
-  const uniqueId = crypto.randomBytes(16).toString('hex');
+  const uniqueId = crypto.randomBytes(16).toString("hex");
   const ext = path.extname(file.originalname);
   const filename = `${uniqueId}${ext}`;
-  
+
   // 2. Validar el contenido real (magic bytes)
   const detectedType = await fileType.fromBuffer(file.buffer);
   if (!isAllowedMimeType(detectedType.mime)) {
-    throw new Error('Invalid file type');
+    throw new Error("Invalid file type");
   }
-  
+
   // 3. Guardar en directorio por usuario
   const userDir = path.join(UPLOADS_DIR, userId);
   fs.mkdirSync(userDir, { recursive: true, mode: 0o700 });
-  
+
   // 4. Guardar con permisos restrictivos
   fs.writeFileSync(
     path.join(userDir, filename),
     file.buffer,
-    { mode: 0o644 }  // No ejecutable
+    { mode: 0o644 } // No ejecutable
   );
-  
+
   return filename;
 }
 ```
@@ -334,19 +339,19 @@ async function saveUploadedFile(file, userId) {
 ```javascript
 // PATRÓN SEGURO
 const ALLOWED_EXTENSIONS = {
-  '.jpg': 'image/jpeg',
-  '.png': 'image/png',
-  '.pdf': 'application/pdf'
+  ".jpg": "image/jpeg",
+  ".png": "image/png",
+  ".pdf": "application/pdf",
   // NO .exe, .sh, .php, .bat, etc
 };
 
 function validateFileExtension(filename) {
   const ext = path.extname(filename).toLowerCase();
-  
+
   if (!(ext in ALLOWED_EXTENSIONS)) {
     throw new Error(`Extension not allowed: ${ext}`);
   }
-  
+
   return ext;
 }
 ```
@@ -357,19 +362,19 @@ function validateFileExtension(filename) {
 
 ```javascript
 // PATRÓN SEGURO
-const multer = require('multer');
+const multer = require("multer");
 
 const upload = multer({
   limits: {
-    fileSize: 5 * 1024 * 1024  // 5 MB
+    fileSize: 5 * 1024 * 1024, // 5 MB
   },
   fileFilter: (req, file, cb) => {
     if (file.size > 5 * 1024 * 1024) {
-      cb(new Error('File too large'));
+      cb(new Error("File too large"));
     } else {
       cb(null, true);
     }
-  }
+  },
 });
 ```
 
@@ -379,17 +384,17 @@ const upload = multer({
 
 ```javascript
 // ❌ INSEGURO
-app.use(express.static('/uploads'));  // Cualquier cosa se ejecuta
+app.use(express.static("/uploads")); // Cualquier cosa se ejecuta
 
 // ✅ SEGURO - Servir como descarga
-app.get('/api/download/:fileId', async (req, res) => {
+app.get("/api/download/:fileId", async (req, res) => {
   const file = await File.findById(req.params.fileId);
-  
+
   // Validar acceso
   if (file.userId !== req.user.id) {
-    return res.status(403).json({ error: 'Access denied' });
+    return res.status(403).json({ error: "Access denied" });
   }
-  
+
   // Descargar como adjunto (no ejecutar)
   res.download(file.path, file.originalName);
 });
@@ -409,11 +414,11 @@ const query = `SELECT * FROM users WHERE id = ${userId}`;
 db.query(query);
 
 // ✅ SIEMPRE hacer esto
-const query = 'SELECT * FROM users WHERE id = ?';
+const query = "SELECT * FROM users WHERE id = ?";
 db.query(query, [userId]);
 
 // Con ORM (que lo hace automáticamente)
-const user = await User.findById(userId);  // ← Parametrizado internamente
+const user = await User.findById(userId); // ← Parametrizado internamente
 ```
 
 ### ✅ Principio 2: Principio de Mínimo Privilegio
@@ -443,21 +448,27 @@ await writePool.execute('UPDATE users SET ... WHERE id = ?', [id]);
 **¿Por qué?** Protege datos en reposo
 
 ```javascript
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 // PATRÓN SEGURO
 class SensitiveData {
   static encrypt(data) {
-    const cipher = crypto.createCipher('aes-256-cbc', process.env.ENCRYPTION_KEY);
-    let encrypted = cipher.update(data, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
+    const cipher = crypto.createCipher(
+      "aes-256-cbc",
+      process.env.ENCRYPTION_KEY
+    );
+    let encrypted = cipher.update(data, "utf8", "hex");
+    encrypted += cipher.final("hex");
     return encrypted;
   }
-  
+
   static decrypt(encrypted) {
-    const decipher = crypto.createDecipher('aes-256-cbc', process.env.ENCRYPTION_KEY);
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
+    const decipher = crypto.createDecipher(
+      "aes-256-cbc",
+      process.env.ENCRYPTION_KEY
+    );
+    let decrypted = decipher.update(encrypted, "hex", "utf8");
+    decrypted += decipher.final("utf8");
     return decrypted;
   }
 }
@@ -477,23 +488,25 @@ class AuditLog {
   static async log(action, userId, resource, result) {
     await AuditLog.create({
       timestamp: new Date(),
-      action,                // 'READ', 'UPDATE', 'DELETE'
+      action, // 'READ', 'UPDATE', 'DELETE'
       userId,
-      resource,              // Qué se accedió
+      resource, // Qué se accedió
       resourceId,
       ip: req.ip,
-      result,                // 'SUCCESS', 'DENIED'
-      reason: result.message // Por qué si falló
+      result, // 'SUCCESS', 'DENIED'
+      reason: result.message, // Por qué si falló
     });
   }
 }
 
 // Usar:
 try {
-  const data = await db.query('SELECT * FROM sensitive WHERE id = ?', [id]);
-  await AuditLog.log('READ', userId, 'sensitive_data', { message: 'SUCCESS' });
+  const data = await db.query("SELECT * FROM sensitive WHERE id = ?", [id]);
+  await AuditLog.log("READ", userId, "sensitive_data", { message: "SUCCESS" });
 } catch (error) {
-  await AuditLog.log('READ', userId, 'sensitive_data', { message: error.message });
+  await AuditLog.log("READ", userId, "sensitive_data", {
+    message: error.message,
+  });
 }
 ```
 
@@ -509,14 +522,14 @@ try {
 // PATRÓN SEGURO
 // 1. Autenticación: ¿Eres quién dices ser?
 async function authenticate(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
-  
+  const token = req.headers.authorization?.split(" ")[1];
+
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = payload;  // ← Ahora sabemos quién es
+    req.user = payload; // ← Ahora sabemos quién es
     next();
   } catch {
-    res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: "Invalid token" });
   }
 }
 
@@ -524,16 +537,17 @@ async function authenticate(req, res, next) {
 function authorize(roles) {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' });
+      return res.status(403).json({ error: "Insufficient permissions" });
     }
     next();
   };
 }
 
 // Usar:
-app.delete('/api/users/:id', 
+app.delete(
+  "/api/users/:id",
   authenticate,
-  authorize(['admin']),  // ← Solo admins pueden eliminar
+  authorize(["admin"]), // ← Solo admins pueden eliminar
   deleteUserController
 );
 ```
@@ -544,25 +558,25 @@ app.delete('/api/users/:id',
 
 ```javascript
 // PATRÓN SEGURO
-app.get('/api/orders/:orderId', authenticate, async (req, res) => {
+app.get("/api/orders/:orderId", authenticate, async (req, res) => {
   const order = await Order.findById(req.params.orderId);
-  
+
   // ✅ CRÍTICO: Verificar que el order pertenece al usuario
   if (order.userId !== req.user.id) {
-    return res.status(403).json({ error: 'Access denied' });
+    return res.status(403).json({ error: "Access denied" });
   }
-  
+
   res.json(order);
 });
 
 // Aplicar al eliminar también
-app.delete('/api/orders/:orderId', authenticate, async (req, res) => {
+app.delete("/api/orders/:orderId", authenticate, async (req, res) => {
   const order = await Order.findById(req.params.orderId);
-  
-  if (order.userId !== req.user.id && req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Access denied' });
+
+  if (order.userId !== req.user.id && req.user.role !== "admin") {
+    return res.status(403).json({ error: "Access denied" });
   }
-  
+
   await order.destroy();
   res.json({ success: true });
 });
@@ -576,31 +590,31 @@ app.delete('/api/orders/:orderId', authenticate, async (req, res) => {
 // PATRÓN SEGURO
 const permissions = {
   user: {
-    'orders:read': ['own'],        // Solo propios
-    'orders:create': true,         // Cualquiera
-    'users:read': false            // No permitido
+    "orders:read": ["own"], // Solo propios
+    "orders:create": true, // Cualquiera
+    "users:read": false, // No permitido
   },
   moderator: {
-    'orders:read': ['own', 'others'],  // Propios y ajenos
-    'orders:update': ['others'],
-    'users:read': ['all']
+    "orders:read": ["own", "others"], // Propios y ajenos
+    "orders:update": ["others"],
+    "users:read": ["all"],
   },
   admin: {
-    'orders:read': ['all'],        // Todo
-    'orders:update': ['all'],
-    'users:read': ['all'],
-    'users:delete': ['all']
-  }
+    "orders:read": ["all"], // Todo
+    "orders:update": ["all"],
+    "users:read": ["all"],
+    "users:delete": ["all"],
+  },
 };
 
 function canAccess(role, action, resource) {
   const rolePerms = permissions[role];
   if (!rolePerms) return false;
-  
+
   const actionPerms = rolePerms[action];
   if (actionPerms === false) return false;
   if (actionPerms === true) return true;
-  
+
   // Validar a nivel de recurso
   return actionPerms.includes(resource);
 }
@@ -633,8 +647,8 @@ ENCRYPTION_KEY=CHANGE_ME
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,  // ← De variables, no hardcoded
-  database: process.env.DB_NAME
+  password: process.env.DB_PASSWORD, // ← De variables, no hardcoded
+  database: process.env.DB_NAME,
 });
 ```
 
@@ -644,22 +658,22 @@ const pool = mysql.createPool({
 
 ```javascript
 // server.js
-const https = require('https');
-const fs = require('fs');
+const https = require("https");
+const fs = require("fs");
 
 const options = {
   key: fs.readFileSync(process.env.SSL_KEY_PATH),
-  cert: fs.readFileSync(process.env.SSL_CERT_PATH)
+  cert: fs.readFileSync(process.env.SSL_CERT_PATH),
 };
 
 https.createServer(options, app).listen(443, () => {
-  console.log('HTTPS server running on 443');
+  console.log("HTTPS server running on 443");
 });
 
 // Redirigir HTTP a HTTPS
 app.use((req, res, next) => {
-  if (req.header('x-forwarded-proto') !== 'https') {
-    res.redirect(`https://${req.header('host')}${req.url}`);
+  if (req.header("x-forwarded-proto") !== "https") {
+    res.redirect(`https://${req.header("host")}${req.url}`);
   } else {
     next();
   }
@@ -672,25 +686,27 @@ app.use((req, res, next) => {
 
 ```javascript
 // PATRÓN SEGURO
-const cors = require('cors');
+const cors = require("cors");
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
-  'https://example.com',
-  'https://www.example.com'
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
+  "https://example.com",
+  "https://www.example.com",
 ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 ```
 
 ### ✅ Principio 4: Deshabilitar Funcionalidades Innecesarias
@@ -699,18 +715,20 @@ app.use(cors({
 
 ```javascript
 // PATRÓN SEGURO
-app.disable('x-powered-by');  // No revelar que es Express
+app.disable("x-powered-by"); // No revelar que es Express
 
 // Limitar body
-app.use(express.json({ limit: '10kb' }));
+app.use(express.json({ limit: "10kb" }));
 
 // No permitir query strings complejos
 app.use(express.urlencoded({ extended: false }));
 
 // Deshabilitar métodos HTTP innecesarios
 app.use((req, res, next) => {
-  if (!['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'].includes(req.method)) {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (
+    !["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"].includes(req.method)
+  ) {
+    return res.status(405).json({ error: "Method not allowed" });
   }
   next();
 });
@@ -726,19 +744,19 @@ app.use((req, res, next) => {
 
 ```javascript
 // tests/validation.test.js
-const { validateUsername, validateEmail } = require('../validators');
+const { validateUsername, validateEmail } = require("../validators");
 
-describe('Input Validation', () => {
-  it('should reject usernames with special characters', () => {
+describe("Input Validation", () => {
+  it("should reject usernames with special characters", () => {
     expect(() => validateUsername("admin'; DROP TABLE users;")).toThrow();
   });
-  
-  it('should accept valid usernames', () => {
-    expect(validateUsername('john_doe')).toBe('john_doe');
+
+  it("should accept valid usernames", () => {
+    expect(validateUsername("john_doe")).toBe("john_doe");
   });
-  
-  it('should reject emails with incorrect format', () => {
-    expect(() => validateEmail('not_an_email')).toThrow();
+
+  it("should reject emails with incorrect format", () => {
+    expect(() => validateEmail("not_an_email")).toThrow();
   });
 });
 ```
@@ -749,26 +767,26 @@ describe('Input Validation', () => {
 
 ```javascript
 // tests/authorization.test.js
-describe('Authorization', () => {
-  it('should prevent user from accessing other user data', async () => {
-    const user1 = await createUser('user1', 'pass1');
-    const user2 = await createUser('user2', 'pass2');
-    
+describe("Authorization", () => {
+  it("should prevent user from accessing other user data", async () => {
+    const user1 = await createUser("user1", "pass1");
+    const user2 = await createUser("user2", "pass2");
+
     const response = await request(app)
       .get(`/api/profile/${user2.id}`)
-      .set('Authorization', `Bearer ${user1.token}`);
-    
+      .set("Authorization", `Bearer ${user1.token}`);
+
     expect(response.status).toBe(403);
   });
-  
-  it('should allow admin to access any user', async () => {
-    const admin = await createUser('admin', 'pass', 'admin');
-    const user = await createUser('user', 'pass');
-    
+
+  it("should allow admin to access any user", async () => {
+    const admin = await createUser("admin", "pass", "admin");
+    const user = await createUser("user", "pass");
+
     const response = await request(app)
       .get(`/api/profile/${user.id}`)
-      .set('Authorization', `Bearer ${admin.token}`);
-    
+      .set("Authorization", `Bearer ${admin.token}`);
+
     expect(response.status).toBe(200);
   });
 });
@@ -780,27 +798,25 @@ describe('Authorization', () => {
 
 ```javascript
 // tests/injection.test.js
-describe('Injection Prevention', () => {
-  it('should prevent SQL injection in login', async () => {
-    const response = await request(app)
-      .post('/api/login')
-      .send({
-        username: "admin' OR '1'='1",
-        password: 'anything'
-      });
-    
+describe("Injection Prevention", () => {
+  it("should prevent SQL injection in login", async () => {
+    const response = await request(app).post("/api/login").send({
+      username: "admin' OR '1'='1",
+      password: "anything",
+    });
+
     expect(response.status).toBe(401);
-    expect(response.body.error).toBe('Invalid credentials');
+    expect(response.body.error).toBe("Invalid credentials");
   });
-  
-  it('should prevent command injection in image processing', async () => {
+
+  it("should prevent command injection in image processing", async () => {
     const response = await request(app)
-      .post('/api/process-image')
-      .set('Authorization', `Bearer ${token}`)
+      .post("/api/process-image")
+      .set("Authorization", `Bearer ${token}`)
       .send({
-        filename: 'image.jpg; rm -rf /'
+        filename: "image.jpg; rm -rf /",
       });
-    
+
     expect(response.status).toBe(400);
   });
 });
@@ -837,6 +853,7 @@ jobs:
 ## 📊 Resumen: Checklist de Seguridad
 
 ### Autenticación
+
 - [ ] Rate limiting en login
 - [ ] CAPTCHA después de N intentos
 - [ ] Mensajes de error genéricos
@@ -844,6 +861,7 @@ jobs:
 - [ ] Sesiones httpOnly y secure
 
 ### Entrada
+
 - [ ] Whitelist de caracteres permitidos
 - [ ] Validación de tipo y formato
 - [ ] Límites de longitud
@@ -851,24 +869,28 @@ jobs:
 - [ ] Magic bytes checking (archivos)
 
 ### Bases de Datos
+
 - [ ] Parametrized queries (100%)
 - [ ] Principio de mínimo privilegio
 - [ ] Encriptación de datos sensibles
 - [ ] Audit logging
 
 ### Control de Acceso
+
 - [ ] Autenticación en todos los endpoints
 - [ ] Verificación de propiedad (object-level)
 - [ ] Autorización basada en roles
 - [ ] Testeo de escalación de privilegios
 
 ### Configuración
+
 - [ ] Variables de entorno para secretos
 - [ ] HTTPS obligatorio
 - [ ] CORS restrictivo
 - [ ] Headers de seguridad
 
 ### Testing
+
 - [ ] Tests de validación
 - [ ] Tests de autorización
 - [ ] Tests de inyección
@@ -878,4 +900,3 @@ jobs:
 
 **Documento generado:** 2 de diciembre de 2025  
 **Versión:** 1.0
-

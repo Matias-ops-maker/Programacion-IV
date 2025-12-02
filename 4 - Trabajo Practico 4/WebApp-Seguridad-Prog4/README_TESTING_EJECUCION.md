@@ -182,14 +182,14 @@ npm test -- --coverage
 // tests/unit/auth.test.js
 describe('Authentication', () => {
   describe('Password Hashing', () => {
-    
+
     it('should hash password with bcrypt', async () => {
       // Arrange: preparar datos
       const password = 'mySecurePassword123';
-      
+
       // Act: ejecutar la función
       const hash = await hashPassword(password);
-      
+
       // Assert: verificar resultado
       expect(hash).not.toBe(password);  // No es igual
       expect(hash.length).toBeGreaterThan(30);  // Es un hash
@@ -237,45 +237,40 @@ npm run test:integration -- --verbose
 
 ```javascript
 // tests/integration/auth.int.test.js
-const request = require('supertest');
-const app = require('../../src/server');
-const { User } = require('../../src/models');
+const request = require("supertest");
+const app = require("../../src/server");
+const { User } = require("../../src/models");
 
-describe('Authentication Integration', () => {
-  
+describe("Authentication Integration", () => {
   before(async () => {
     // Setup: crear usuario de prueba
     await User.create({
-      username: 'testuser',
-      password: 'test123'
+      username: "testuser",
+      password: "test123",
     });
   });
-  
-  it('should login and return JWT token', async () => {
+
+  it("should login and return JWT token", async () => {
     // Arrange & Act: hacer login
-    const response = await request(app)
-      .post('/api/login')
-      .send({
-        username: 'testuser',
-        password: 'test123'
-      });
-    
+    const response = await request(app).post("/api/login").send({
+      username: "testuser",
+      password: "test123",
+    });
+
     // Assert: verificar respuesta
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('token');
-    expect(response.body.token).toMatch(/^eyJ/);  // JWT valido
+    expect(response.body).toHaveProperty("token");
+    expect(response.body.token).toMatch(/^eyJ/); // JWT valido
   });
-  
-  it('should reject invalid credentials', async () => {
-    const response = await request(app)
-      .post('/api/login')
-      .send({
-        username: 'testuser',
-        password: 'wrongpassword'
-      });
-    
+
+  it("should reject invalid credentials", async () => {
+    const response = await request(app).post("/api/login").send({
+      username: "testuser",
+      password: "wrongpassword",
+    });
+
     expect(response.status).toBe(401);
-    expect(response.body.error).toBe('Invalid credentials');
+    expect(response.body.error).toBe("Invalid credentials");
   });
 });
 ```
@@ -341,43 +336,36 @@ npm run test:security -- 01-brute-force.test.js
 
 ```javascript
 // tests/security/01-brute-force.test.js
-describe('Brute Force Protection', () => {
-  
-  it('should rate limit login attempts', async () => {
+describe("Brute Force Protection", () => {
+  it("should rate limit login attempts", async () => {
     for (let i = 0; i < 5; i++) {
-      const response = await request(app)
-        .post('/api/login')
-        .send({
-          username: 'admin',
-          password: 'wrongpass'
-        });
-      
+      const response = await request(app).post("/api/login").send({
+        username: "admin",
+        password: "wrongpass",
+      });
+
       expect([200, 401]).toContain(response.status);
     }
-    
+
     // 6to intento debe ser rechazado (429)
-    const rateLimited = await request(app)
-      .post('/api/login')
-      .send({
-        username: 'admin',
-        password: 'wrongpass'
-      });
-    
-    expect(rateLimited.status).toBe(429);  // Too Many Requests
+    const rateLimited = await request(app).post("/api/login").send({
+      username: "admin",
+      password: "wrongpass",
+    });
+
+    expect(rateLimited.status).toBe(429); // Too Many Requests
   });
-  
-  it('should require CAPTCHA after 3 attempts', async () => {
+
+  it("should require CAPTCHA after 3 attempts", async () => {
     // 3 intentos fallidos...
-    
+
     // 4to intento requiere CAPTCHA
-    const response = await request(app)
-      .post('/api/login')
-      .send({
-        username: 'admin',
-        password: 'wrongpass'
-        // Sin captchaToken
-      });
-    
+    const response = await request(app).post("/api/login").send({
+      username: "admin",
+      password: "wrongpass",
+      // Sin captchaToken
+    });
+
     expect(response.status).toBe(403);
     expect(response.body.captchaRequired).toBe(true);
   });
@@ -388,17 +376,16 @@ describe('Brute Force Protection', () => {
 
 ```javascript
 // tests/security/02-command-injection.test.js
-describe('Command Injection Prevention', () => {
-  
-  it('should reject command injection in filenames', async () => {
+describe("Command Injection Prevention", () => {
+  it("should reject command injection in filenames", async () => {
     const response = await request(app)
-      .post('/api/process-image')
-      .set('Authorization', `Bearer ${token}`)
+      .post("/api/process-image")
+      .set("Authorization", `Bearer ${token}`)
       .send({
-        filename: 'image.jpg; rm -rf /'  // ← Payload malicioso
+        filename: "image.jpg; rm -rf /", // ← Payload malicioso
       });
-    
-    expect(response.status).toBe(400);  // Bad request
+
+    expect(response.status).toBe(400); // Bad request
     // No ejecuta el comando
   });
 });
@@ -408,19 +395,18 @@ describe('Command Injection Prevention', () => {
 
 ```javascript
 // tests/security/03-csrf.test.js
-describe('CSRF Protection', () => {
-  
-  it('should reject POST without CSRF token', async () => {
+describe("CSRF Protection", () => {
+  it("should reject POST without CSRF token", async () => {
     const response = await request(app)
-      .post('/api/transfer')
-      .set('Authorization', `Bearer ${token}`)
+      .post("/api/transfer")
+      .set("Authorization", `Bearer ${token}`)
       .send({
-        toAccount: 'attacker',
-        amount: 9999
+        toAccount: "attacker",
+        amount: 9999,
       });
-    
-    expect(response.status).toBe(403);  // Forbidden
-    expect(response.body.error).toContain('CSRF');
+
+    expect(response.status).toBe(403); // Forbidden
+    expect(response.body.error).toContain("CSRF");
   });
 });
 ```
@@ -429,18 +415,15 @@ describe('CSRF Protection', () => {
 
 ```javascript
 // tests/security/07-sql-injection.test.js
-describe('SQL Injection Prevention', () => {
-  
-  it('should prevent SQL injection in login', async () => {
-    const response = await request(app)
-      .post('/api/login')
-      .send({
-        username: "admin' OR '1'='1",  // ← Payload clásico
-        password: 'anything'
-      });
-    
+describe("SQL Injection Prevention", () => {
+  it("should prevent SQL injection in login", async () => {
+    const response = await request(app).post("/api/login").send({
+      username: "admin' OR '1'='1", // ← Payload clásico
+      password: "anything",
+    });
+
     expect(response.status).toBe(401);
-    expect(response.body.error).toBe('Invalid credentials');
+    expect(response.body.error).toBe("Invalid credentials");
   });
 });
 ```
@@ -727,6 +710,7 @@ npm run seed
 Disponible en: `MATRIZ_CASOS_PRUEBA.md`
 
 Esta matriz documenta cada prueba:
+
 - ID único
 - Descripción
 - Pasos para reproducir
@@ -763,4 +747,3 @@ Esta matriz documenta cada prueba:
 
 **Documento generado:** 2 de diciembre de 2025  
 **Versión:** 1.0
-

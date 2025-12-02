@@ -3,13 +3,17 @@
 ## 🎯 Selecciona tu Punto de Partida
 
 ### 👤 Soy Nuevo en el Proyecto
+
 **→ Lee:** [`START_HERE.md`](START_HERE.md)
+
 - Guía en 5 minutos
 - Comandos esenciales
 - Solución rápida de problemas
 
 ### 📚 Necesito Guía Completa
+
 **→ Lee:** [`SETUP_GUIDE.md`](SETUP_GUIDE.md)
+
 - Requisitos previos
 - Instalación paso a paso
 - Tests de seguridad detallado
@@ -17,7 +21,9 @@
 - Checklist final
 
 ### ⚡ Necesito Comandos Rápidos
+
 **→ Lee:** [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md)
+
 - Comandos esenciales
 - Tests y desarrollo
 - Docker útiles
@@ -25,7 +31,9 @@
 - Tips y trucos
 
 ### 🔧 Necesito Información Técnica
+
 **→ Lee:** [`WORK_SUMMARY.md`](WORK_SUMMARY.md)
+
 - Descripción de cada script
 - Arquitectura técnica
 - Flujo de trabajo
@@ -39,6 +47,7 @@
 ### 🔴 Scripts Principales
 
 #### verify-all.ps1 / verify-all.sh
+
 ```bash
 # Windows
 .\verify-all.ps1
@@ -46,6 +55,7 @@
 # Linux/Mac
 bash verify-all.sh
 ```
+
 **¿Para qué?** Ejecuta TODAS las verificaciones automáticamente
 **Duración:** 5-10 minutos
 **Recomendación:** ⭐⭐⭐ COMIENZA AQUÍ
@@ -55,6 +65,7 @@ bash verify-all.sh
 ### 🟡 Scripts Individuales
 
 #### verify-docker.ps1 / verify-docker.sh
+
 ```bash
 # Windows
 .\verify-docker.ps1
@@ -62,10 +73,12 @@ bash verify-all.sh
 # Linux/Mac
 bash verify-docker.sh
 ```
+
 **¿Para qué?** Verifica que Docker esté instalado y configurado
 **Duración:** 30 segundos
 
 #### verify-e2e.ps1 / verify-e2e.sh
+
 ```bash
 # Windows
 .\verify-e2e.ps1
@@ -73,10 +86,12 @@ bash verify-docker.sh
 # Linux/Mac
 bash verify-e2e.sh
 ```
+
 **¿Para qué?** Valida que todos los servicios funcionen
 **Duración:** 1-2 minutos
 
 #### run-security-tests.ps1 / run-security-tests.sh
+
 ```bash
 # Windows
 .\run-security-tests.ps1
@@ -84,6 +99,7 @@ bash verify-e2e.sh
 # Linux/Mac
 bash run-security-tests.sh
 ```
+
 **¿Para qué?** Ejecuta tests de vulnerabilidades
 **Duración:** 2-5 minutos
 
@@ -93,15 +109,16 @@ bash run-security-tests.sh
 
 Una vez que todo está corriendo:
 
-| Servicio | URL | Puerto | Usuario | Contraseña |
-|----------|-----|--------|---------|-----------|
-| Frontend | http://localhost:3000 | 3000 | - | - |
-| API Backend | http://localhost:5000/api | 5000 | - | - |
-| Productos | http://localhost:5000/api/products | 5000 | - | - |
-| CAPTCHA | http://localhost:5000/api/auth/captcha | 5000 | - | - |
-| MySQL | localhost:3306 | 3306 | appuser | apppass123 |
+| Servicio    | URL                                    | Puerto | Usuario | Contraseña |
+| ----------- | -------------------------------------- | ------ | ------- | ---------- |
+| Frontend    | http://localhost:3000                  | 3000   | -       | -          |
+| API Backend | http://localhost:5000/api              | 5000   | -       | -          |
+| Productos   | http://localhost:5000/api/products     | 5000   | -       | -          |
+| CAPTCHA     | http://localhost:5000/api/auth/captcha | 5000   | -       | -          |
+| MySQL       | localhost:3306                         | 3306   | appuser | apppass123 |
 
 **Credenciales de Prueba:**
+
 ```
 Usuario: admin / admin123
 Usuario: user1 / user123
@@ -225,36 +242,42 @@ WebApp-Seguridad-Prog4/
 
 ## 🧪 Vulnerabilidades a Corregir
 
-| # | Vulnerabilidad | Test | Descripción |
-|---|---|---|---|
-| 1 | Brute Force | 01-brute-force.test.js | Implementar rate limiting |
-| 2 | Command Injection | 02-command-injection.test.js | Validar entrada de comandos |
-| 3 | CSRF Protection | 03-csrf-protection.test.js | Agregar tokens CSRF |
-| 4 | File Inclusion | 04-file-inclusion.test.js | Validar rutas de archivos |
-| 5 | File Upload | 05-file-upload.test.js | Validar tipos y tamaños |
-| 6 | Insecure CAPTCHA | 06-insecure-captcha.test.js | Implementar CAPTCHA seguro |
-| 7 | SQL Injection | 07-sql-injection.test.js | Usar prepared statements |
-| 8 | Blind SQL Injection | 08-blind-sql-injection.test.js | Validar todas las entradas |
+| #   | Vulnerabilidad      | Test                           | Descripción                 |
+| --- | ------------------- | ------------------------------ | --------------------------- |
+| 1   | Brute Force         | 01-brute-force.test.js         | Implementar rate limiting   |
+| 2   | Command Injection   | 02-command-injection.test.js   | Validar entrada de comandos |
+| 3   | CSRF Protection     | 03-csrf-protection.test.js     | Agregar tokens CSRF         |
+| 4   | File Inclusion      | 04-file-inclusion.test.js      | Validar rutas de archivos   |
+| 5   | File Upload         | 05-file-upload.test.js         | Validar tipos y tamaños     |
+| 6   | Insecure CAPTCHA    | 06-insecure-captcha.test.js    | Implementar CAPTCHA seguro  |
+| 7   | SQL Injection       | 07-sql-injection.test.js       | Usar prepared statements    |
+| 8   | Blind SQL Injection | 08-blind-sql-injection.test.js | Validar todas las entradas  |
 
 ---
 
 ## 🆘 Solución Rápida de Problemas
 
 ### Problema: "Command not found: docker"
+
 **Solución:** Instala Docker desde https://www.docker.com/
 
 ### Problema: "Port 5000 already in use"
+
 **Solución:** Usa otro puerto en docker-compose.yml o mata el proceso
 
 ### Problema: "Cannot find module"
-**Solución:** 
+
+**Solución:**
+
 ```bash
 cd backend
 npm install
 ```
 
 ### Problema: "Service not responding"
+
 **Solución:**
+
 ```bash
 docker-compose down -v
 docker-compose up --build
@@ -289,6 +312,7 @@ npm run test:security
 ```
 
 ### Más Comandos
+
 **→ Ver:** QUICK_REFERENCE.md
 
 ---
@@ -331,6 +355,7 @@ Antes de empezar, asegúrate que:
 ⚠️ **NO USAR EN PRODUCCIÓN**
 
 **Objetivos de aprendizaje:**
+
 - ✅ Identificar vulnerabilidades comunes
 - ✅ Entender cómo explotar vulnerabilidades
 - ✅ Aprender a corregirlas
@@ -358,4 +383,3 @@ bash verify-all.sh
 **Estado:** ✅ Completado
 
 **Última actualización:** 2 de diciembre de 2025
-

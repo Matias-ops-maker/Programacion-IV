@@ -50,11 +50,13 @@ docker-compose stop backend
 ### Ejecutar Script Maestro (TODO)
 
 **Windows:**
+
 ```powershell
 .\verify-all.ps1
 ```
 
 **Linux/Mac:**
+
 ```bash
 bash verify-all.sh
 ```
@@ -62,6 +64,7 @@ bash verify-all.sh
 ### Ejecutar Tests Individuales
 
 **Verificar Docker:**
+
 ```bash
 # Windows
 .\verify-docker.ps1
@@ -71,6 +74,7 @@ bash verify-docker.sh
 ```
 
 **Validación E2E:**
+
 ```bash
 # Windows
 .\verify-e2e.ps1
@@ -80,6 +84,7 @@ bash verify-e2e.sh
 ```
 
 **Tests de Seguridad:**
+
 ```bash
 # Windows
 .\run-security-tests.ps1
@@ -418,4 +423,3 @@ docker version
 ---
 
 **Última actualización:** 2 de diciembre de 2025
-
